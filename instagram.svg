@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="34.820984"
+   height="36"
+   viewBox="0 0 34.820984 36"
+   fill="none"
+   stroke="currentColor"
+   stroke-width="2"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   class="feather feather-instagram"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs1" /><g
+     id="g8"
+     transform="translate(-577.25775,-740.98663)"><rect
+       x="577.76178"
+       y="741.49066"
+       width="33.812943"
+       height="34.991951"
+       rx="8.4532356"
+       ry="8.7479877"
+       id="rect1"
+       style="fill:none;stroke:#ffffff;stroke-width:1.00805;stroke-dasharray:none" /><path
+       d="m 601.43087,757.88442 a 6.7625881,6.9983901 0 1 1 -5.69747,-5.89615 6.7625881,6.9983901 0 0 1 5.69747,5.89615 z"
+       id="path1"
+       style="fill:none;stroke:#ffffff;stroke-width:1.00805;stroke-dasharray:none" /><line
+       x1="603.96686"
+       y1="749.36389"
+       x2="603.9837"
+       y2="749.36389"
+       id="line1"
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-dasharray:none" /></g></svg>
