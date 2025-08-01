@@ -8,9 +8,24 @@
 /* 2. Body & fuente */
 body {
   font-family: 'Raleway', sans-serif;
-  color: #fff;                      /* <-- Color de texto por defecto (blanco) */
+  color: #fff; /* Color de texto por defecto (blanco) */
   overflow-x: hidden;
-  background: url('bg.jpg') center/cover no-repeat;
+  background: none; /* Quitamos fondo estático para video */
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Video de fondo */
+#background-video {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  z-index: -1; /* Para que quede detrás de todo */
+  background-size: cover;
 }
 
 /* 3. Hero full-screen */
@@ -23,23 +38,19 @@ body {
   justify-content: center;
   text-align: center;
   padding: 1rem;
+  position: relative;
+  z-index: 1; /* Por encima del video */
 }
 
-/* 4. Logo */
-/* ---------------------------------- */
-/* Cambia estos valores para redimensionar el logo */
+/* El resto queda igual... */
+
 .logo {
   width: clamp(150px, 100vw, 450px);
-  /* 150px = tamaño mínimo
-     25vw = tamaño relativo al ancho de la pantalla
-     300px = tamaño máximo */
-  margin-bottom: 15vh;  /* <-- Ajusta el espacio abajo del logo */
+  margin-bottom: 15vh;
 }
 
-/* 5. Texto central */
-/* ---------------------------------- */
 .main-text {
-  margin-bottom: 3vh; /* espacio entre todo el bloque y los iconos */
+  margin-bottom: 3vh;
 }
 
 .main-text__level1 {
@@ -58,31 +69,25 @@ body {
   margin-bottom: 10vh;
 }
 
-
-/* 6. Iconos sociales */
-/* ---------------------------------- */
 .social-links {
   display: flex;
-  gap: clamp(1rem, 3vw, 2.5rem); /* <-- Espacio ENTRE iconos */
+  gap: clamp(1rem, 3vw, 2.5rem);
 }
 
 .social-links img {
-  height: clamp(32px, 0.8vw, 56px); /* <-- Altura de iconos */
-  width: auto;                     /* ancho proporcional */
+  height: clamp(32px, 0.8vw, 56px);
+  width: auto;
   margin-bottom: 3vh;
 }
 
-/* 7. Ubicación */
-/* Ajusta margin-top para separar de los iconos */
 .location {
   font-size: clamp(0.8rem, 0.6vw, 1rem);
   font-weight: 100;
-  margin-top: 1vh;               /* ↑ espacio debajo de iconos */
+  margin-top: 1vh;
   color: #fff;
   text-transform: uppercase;
 }
 
-/* 8. Responsive para móvil */
 @media (max-width: 600px) {
   .logo {
     width: 40vw;
