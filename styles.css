@@ -108,7 +108,7 @@ body {
   .logo {
     width: 80vw;
     margin-top: 0.2vh;        /* <-- AJUSTA PARA CELULAR */
-    margin-bottom: 12vh;     /* <-- AJUSTA PARA CELULAR */
+    margin-bottom: 20vh;     /* <-- AJUSTA PARA CELULAR */
   }
   .main-text__level1 {
     font-size: clamp(0.7rem, 4vw, 1.2rem);
@@ -116,7 +116,7 @@ body {
   }
   .main-text__level2 {
     font-size: clamp(0.7rem, 4vw, 1.2rem);
-    margin-bottom: 6vh;     /* <-- AJUSTA PARA CELULAR */
+    margin-bottom: 10vh;     /* <-- AJUSTA PARA CELULAR */
   }
   .social-links {
     gap: clamp(2.5rem, 8vw, 4rem);
@@ -127,6 +127,7 @@ body {
     margin-bottom: 1vh;      /* <-- AJUSTA PARA CELULAR */
   }
 }
+
 
 
 
