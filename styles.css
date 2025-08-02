@@ -91,12 +91,38 @@ body {
 
 /* Configuración para dispositivos móviles */
 @media (max-width: 600px) {
-    #background-video {
-    height: 100vh;
-    width: auto;
-    object-fit: cover;
-    object-position: center center;
-  } 
+/* Estilos comunes para ambos videos */
+.background-video {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  z-index: -1;
+  background-size: cover;
+}
+
+/* Mostrar solo video desktop por defecto */
+#background-video-desktop {
+  display: block;
+}
+
+#background-video-mobile {
+  display: none;
+}
+
+/* En móvil mostrar solo el video móvil */
+@media (max-width: 600px) {
+  #background-video-desktop {
+    display: none;
+  }
+  #background-video-mobile {
+    display: block;
+  }
+}
+ 
   .logo {
     width: 80vw;
     margin-bottom: 7rem;
@@ -117,7 +143,7 @@ body {
     margin-bottom: 0.8rem;
   }
   .social-links img {
-    gap: clamp(3rem, 7vw, 3.5rem); /* Espacio entre íconos */
+    gap: clamp(3rem, 7vw, 5rem); /* Espacio entre íconos */
     height: clamp(24px, 8vw, 40px);
   }
   .location {
@@ -131,6 +157,7 @@ body {
     object-position: 20% center;
   }
 }
+
 
 
 
