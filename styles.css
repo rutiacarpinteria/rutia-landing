@@ -139,7 +139,7 @@ body {
      margin-bottom: 5rem;
   }
   .social-links {
-    gap: clamp(0.5rem, 5vw, 1rem);
+    gap: clamp(1.5rem, 5vw, 3rem);
     margin-bottom: 0.8rem;
   }
   .social-links img {
@@ -154,9 +154,10 @@ body {
   /* Ajuste del video de fondo para móvil */
   #background-video {
     object-fit: cover;
-    object-position: 20% center;
+    object-position: center;
   }
 }
+
 
 
 
