@@ -16,9 +16,15 @@
 
 <body>
 
-  <!-- Video de fondo -->
+  <!-- Video de fondo para desktop -->
   <video autoplay muted loop playsinline id="background-video">
     <source src="BG.mp4" type="video/mp4" />
+
+    <!-- Video para móvil -->
+<video autoplay muted loop playsinline id="background-video-mobile" class="background-video">
+  <source src="BG_V.mp4" type="video/mp4" />
+  Tu navegador no soporta video de fondo.
+</video>
     <!-- Podés agregar más fuentes para compatibilidad -->
     Tu navegador no soporta video de fondo.
   </video>
@@ -75,3 +81,4 @@
   </section>
 </body>
 </html>
+
