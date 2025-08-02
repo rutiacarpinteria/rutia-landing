@@ -15,8 +15,8 @@ body {
   min-height: 100vh;
 }
 
-/* Video de fondo */
-#background-video {
+/* Video de fondo: reglas comunes */
+.background-video {
   position: fixed;
   right: 0;
   bottom: 0;
@@ -26,6 +26,18 @@ body {
   height: auto;
   z-index: -1; /* Para que quede detrás de todo */
   background-size: cover;
+}
+
+/* Mostrar solo video desktop por defecto */
+#background-video-desktop {
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Ocultar video móvil por defecto */
+#background-video-mobile {
+  display: none;
 }
 
 /* 3. Hero full-screen */
@@ -42,13 +54,13 @@ body {
   z-index: 1; /* Por encima del video */
 }
 
-/* El resto queda igual... */
-
+/* 4. Logo */
 .logo {
   width: clamp(150px, 100vw, 450px);
   margin-bottom: 15vh;
 }
 
+/* 5. Texto principal */
 .main-text {
   margin-bottom: 3vh;
 }
@@ -69,100 +81,5 @@ body {
   margin-bottom: 10vh;
 }
 
-.social-links {
-  display: flex;
-  gap: clamp(1rem, 3vw, 2.5rem);
-}
-
-.social-links img {
-  height: clamp(32px, 0.8vw, 56px);
-  width: auto;
-  margin-bottom: 3vh;
-}
-
-.location {
-  font-size: clamp(0.8rem, 0.6vw, 1rem);
-  font-weight: 100;
-  margin-top: 1vh;
-  color: #fff;
-  text-transform: uppercase;
-}
-
-
-/* Configuración para dispositivos móviles */
-@media (max-width: 600px) {
-/* Estilos comunes para ambos videos */
-.background-video {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  min-width: 100%;
-  min-height: 100%;
-  width: auto;
-  height: auto;
-  z-index: -1;
-  background-size: cover;
-}
-
-/* Mostrar solo video desktop por defecto */
-#background-video-desktop {
-  display: block;
-}
-
-#background-video-mobile {
-  display: none;
-}
-
-/* En móvil mostrar solo el video móvil */
-@media (max-width: 600px) {
-  #background-video-desktop {
-    display: none;
-  }
-  #background-video-mobile {
-    display: block;
-  }
-}
- 
-  .logo {
-    width: 80vw;
-    margin-bottom: 7rem;
-  }
-  .main-text {
-    margin-bottom: 2rem;
-  }
-  .main-text__level1 {
-    font-size: clamp(0.7rem, 4vw, 1.2rem);
-    margin-bottom: 0.8rem;
-  }
-  .main-text__level2 {
-    font-size: clamp(0.7rem, 4vw, 1.2rem);
-     margin-bottom: 5rem;
-  }
-  .social-links {
-    gap: clamp(1.5rem, 5vw, 3rem);
-    margin-bottom: 0.8rem;
-  }
-  .social-links img {
-    gap: clamp(3rem, 7vw, 5rem); /* Espacio entre íconos */
-    height: clamp(24px, 8vw, 40px);
-  }
-  .location {
-    font-size: clamp(0.7rem, 3vw, 0.9rem);
-    margin-top: 0.6rem;
-  }
-
-  /* Ajuste del video de fondo para móvil */
-  #background-video {
-    object-fit: cover;
-    object-position: center;
-  }
-}
-
-
-
-
-
-
-
-
-
+/* 6. Iconos sociales */
+.social
