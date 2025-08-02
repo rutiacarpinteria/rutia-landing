@@ -48,77 +48,82 @@ body {
   padding: 1rem;
 }
 
-/* Logo */
+/* ------------------------------------ */
+/* 1. LOGO: DISTANCIA RESPECTO AL TOPE  */
+/* ------------------------------------ */
+/* El "margin-top" ajusta la distancia desde arriba */
 .logo {
   width: clamp(150px, 100vw, 450px);
-  margin-bottom: 15vh;
+  margin-top: 5vh;        /* <-- AJUSTA ESTE VALOR para subir o bajar el logo */
+  margin-bottom: 10vh;    /* <-- AJUSTA ESTE VALOR para separar el logo del texto */
 }
 
-/* Texto principal */
-.main-text {
-  margin-bottom: 3vh;
-}
+/* ------------------------------ */
+/* 2. DISTANCIA ENTRE TEXTOS      */
+/* ------------------------------ */
+/* .main-text__level1 y __level2 controlan el espacio entre los dos textos */
 .main-text__level1 {
   font-size: clamp(1rem, 2.5vw, 1.3rem);
   font-weight: 200;
   text-transform: uppercase;
   line-height: 1.2;
-  margin-bottom: 3vh;
+  margin-bottom: 2vh;   /* <-- AJUSTA ESTE VALOR para más/menos espacio entre nivel 1 y nivel 2 */
 }
+
 .main-text__level2 {
   font-size: clamp(1rem, 2.5vw, 1.3rem);
   font-weight: 200;
   text-transform: uppercase;
   line-height: 1.3;
-  margin-bottom: 10vh;
+  margin-bottom: 8vh;   /* <-- AJUSTA ESTE VALOR para separar el texto de los íconos */
 }
 
-/* Iconos sociales */
+/* ----------------------------- */
+/* 3. DISTANCIA ICONOS Y UBICACIÓN */
+/* ----------------------------- */
 .social-links {
   display: flex;
   gap: clamp(1rem, 3vw, 2.5rem);
+  margin-bottom: 3vh;    /* <-- AJUSTA ESTE VALOR para separar los íconos del location */
 }
+
 .social-links img {
   height: clamp(32px, 0.8vw, 56px);
   width: auto;
-  margin-bottom: 3vh;
 }
 
-/* Ubicación */
+/* Ubicación (location) */
 .location {
   font-size: clamp(0.8rem, 0.6vw, 1rem);
   font-weight: 100;
-  margin-top: 1vh;
+  margin-top: 1vh;      /* <-- AJUSTA ESTE VALOR si querés aún más distancia */
   color: #fff;
   text-transform: uppercase;
 }
 
-/* Responsive para móvil */
+/* ------------- */
+/* RESPONSIVE    */
+/* ------------- */
 @media (max-width: 600px) {
   .logo {
     width: 80vw;
-    margin-bottom: 7rem;
+    margin-top: 3vh;        /* <-- AJUSTA PARA CELULAR */
+    margin-bottom: 6vh;     /* <-- AJUSTA PARA CELULAR */
   }
-  .main-text { margin-bottom: 2rem; }
   .main-text__level1 {
     font-size: clamp(0.7rem, 4vw, 1.2rem);
-    margin-bottom: 1.5rem;
+    margin-bottom: 3rem;  /* <-- AJUSTA PARA CELULAR */
   }
   .main-text__level2 {
     font-size: clamp(0.7rem, 4vw, 1.2rem);
-    margin-bottom: 5rem;
+    margin-bottom: 5vh;     /* <-- AJUSTA PARA CELULAR */
   }
   .social-links {
     gap: clamp(1.5rem, 5vw, 3rem);
-    margin-bottom: 0.8rem;
-  }
-  .social-links img {
-    gap: clamp(3rem, 7vw, 5rem);
-    height: clamp(24px, 8vw, 40px);
+    margin-bottom: 2vh;     /* <-- AJUSTA PARA CELULAR */
   }
   .location {
     font-size: clamp(0.7rem, 3vw, 0.9rem);
-    margin-top: 0.3rem;
+    margin-bottom: 1vh;      /* <-- AJUSTA PARA CELULAR */
   }
 }
-
