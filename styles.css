@@ -102,11 +102,12 @@ body {
 
 /* Configuración para dispositivos móviles */
 @media (max-width: 600px) {
-  /* Mostrar solo video móvil en pantallas pequeñas */
+  /* Ocultar video desktop en móvil */
   #background-video-desktop {
     display: none;
   }
 
+  /* Mostrar video móvil en móvil */
   #background-video-mobile {
     display: block;
     object-position: center;
