@@ -122,9 +122,10 @@ body {
   /* Ajuste del video de fondo para móvil */
   #background-video {
     object-fit: cover;
-    object-position: center left;
+    object-position: left center;
   }
 }
+
 
 
 
