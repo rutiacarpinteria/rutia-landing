@@ -51,7 +51,7 @@ body {
   text-align: center;
   padding: 1rem;
   position: relative;
-  z-index: 1; /* Por encima del video */
+  z-index: 10; /* Por encima del video */
 }
 
 /* 4. Logo */
@@ -82,4 +82,87 @@ body {
 }
 
 /* 6. Iconos sociales */
-.social
+.social-links {
+  display: flex;
+  gap: clamp(1rem, 3vw, 2.5rem);
+}
+
+.social-links img {
+  height: clamp(32px, 0.8vw, 56px);
+  width: auto;
+  margin-bottom: 3vh;
+}
+
+/* 7. Ubicación */
+.location {
+  font-size: clamp(0.8rem, 0.6vw, 1rem);
+  font-weight: 100;
+  margin-top: 1vh;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+/* Configuración para dispositivos móviles */
+@media (max-width: 600px) {
+  /* Mostrar solo video móvil en pantallas pequeñas */
+  #background-video-desktop {
+    display: none;
+  }
+
+  #background-video-mobile {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    object-position: center;
+    z-index: -1;
+  }
+
+  .hero {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+  }
+
+  .logo {
+    width: 80vw;
+    margin-bottom: 7rem;
+  }
+
+  .main-text {
+    margin-bottom: 2rem;
+  }
+
+  .main-text__level1 {
+    font-size: clamp(0.7rem, 4vw, 1.2rem);
+    margin-bottom: 0.8rem;
+  }
+
+  .main-text__level2 {
+    font-size: clamp(0.7rem, 4vw, 1.2rem);
+    margin-bottom: 5rem;
+  }
+
+  .social-links {
+    gap: clamp(1.5rem, 5vw, 3rem);
+    margin-bottom: 0.8rem;
+  }
+
+  .social-links img {
+    gap: clamp(3rem, 7vw, 5rem);
+    height: clamp(24px, 8vw, 40px);
+  }
+
+  .location {
+    font-size: clamp(0.7rem, 3vw, 0.9rem);
+    margin-top: 0.6rem;
+  }
+}
