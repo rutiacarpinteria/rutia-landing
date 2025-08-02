@@ -8,9 +8,9 @@
 /* 2. Body & fuente */
 body {
   font-family: 'Raleway', sans-serif;
-  color: #fff; /* Color de texto por defecto (blanco) */
+  color: #fff;
   overflow-x: hidden;
-  background: none; /* Quitamos fondo estático para video */
+  background: none;
   position: relative;
   min-height: 100vh;
 }
@@ -18,31 +18,27 @@ body {
 /* Video de fondo: reglas comunes */
 .background-video {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   width: 100vw;
   height: 100vh;
   object-fit: cover;
-  z-index: -1; /* Para que quede detrás de todo */
+  z-index: -1;
   background-size: cover;
 }
 
-/* Mostrar solo video desktop por defecto */
-#background-video-desktop {
-  display: block;
-  object-position: center;
+/* Por defecto, solo video desktop visible */
+#background-video-desktop { display: block; object-position: center; }
+#background-video-mobile  { display: none; }
+
+@media (max-width: 600px) {
+  #background-video-desktop { display: none; }
+  #background-video-mobile  { display: block; object-position: center; }
 }
 
-/* Ocultar video móvil por defecto */
-#background-video-mobile {
-  display: none;
-}
-
-/* 3. Hero full-screen */
 .hero {
-  position: relative; /* Para que z-index funcione */
-  z-index: 10; /* Por encima del video */
-  width: 100%;
+  position: relative;
+  z-index: 10;
+  width: 100vw;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -52,17 +48,16 @@ body {
   padding: 1rem;
 }
 
-/* 4. Logo */
+/* Logo */
 .logo {
   width: clamp(150px, 100vw, 450px);
   margin-bottom: 15vh;
 }
 
-/* 5. Texto principal */
+/* Texto principal */
 .main-text {
   margin-bottom: 3vh;
 }
-
 .main-text__level1 {
   font-size: clamp(1rem, 2.5vw, 1.3rem);
   font-weight: 200;
@@ -70,7 +65,6 @@ body {
   line-height: 1.2;
   margin-bottom: 3vh;
 }
-
 .main-text__level2 {
   font-size: clamp(1rem, 2.5vw, 1.3rem);
   font-weight: 200;
@@ -79,19 +73,18 @@ body {
   margin-bottom: 10vh;
 }
 
-/* 6. Iconos sociales */
+/* Iconos sociales */
 .social-links {
   display: flex;
   gap: clamp(1rem, 3vw, 2.5rem);
 }
-
 .social-links img {
   height: clamp(32px, 0.8vw, 56px);
   width: auto;
   margin-bottom: 3vh;
 }
 
-/* 7. Ubicación */
+/* Ubicación */
 .location {
   font-size: clamp(0.8rem, 0.6vw, 1rem);
   font-weight: 100;
@@ -100,48 +93,29 @@ body {
   text-transform: uppercase;
 }
 
-/* Configuración para dispositivos móviles */
+/* Responsive para móvil */
 @media (max-width: 600px) {
-  /* Ocultar video desktop en móvil */
-  #background-video-desktop {
-    display: none;
-  }
-
-  /* Mostrar video móvil en móvil */
-  #background-video-mobile {
-    display: block;
-    object-position: center;
-  }
-
   .logo {
     width: 80vw;
     margin-bottom: 7rem;
   }
-
-  .main-text {
-    margin-bottom: 2rem;
-  }
-
+  .main-text { margin-bottom: 2rem; }
   .main-text__level1 {
     font-size: clamp(0.7rem, 4vw, 1.2rem);
     margin-bottom: 0.8rem;
   }
-
   .main-text__level2 {
     font-size: clamp(0.7rem, 4vw, 1.2rem);
     margin-bottom: 5rem;
   }
-
   .social-links {
     gap: clamp(1.5rem, 5vw, 3rem);
     margin-bottom: 0.8rem;
   }
-
   .social-links img {
     gap: clamp(3rem, 7vw, 5rem);
     height: clamp(24px, 8vw, 40px);
   }
-
   .location {
     font-size: clamp(0.7rem, 3vw, 0.9rem);
     margin-top: 0.6rem;
