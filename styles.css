@@ -91,6 +91,12 @@ body {
 
 /* Configuración para dispositivos móviles */
 @media (max-width: 600px) {
+    #background-video {
+    height: 100vh;
+    width: auto;
+    object-fit: cover;
+    object-position: center center;
+  } 
   .logo {
     width: 80vw;
     margin-bottom: 7rem;
@@ -122,9 +128,10 @@ body {
   /* Ajuste del video de fondo para móvil */
   #background-video {
     object-fit: cover;
-    object-position: left center;
+    object-position: 20% center;
   }
 }
+
 
 
 
