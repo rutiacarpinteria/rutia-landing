@@ -28,7 +28,7 @@ body {
 
 /* Mostrar video desktop por defecto */
 #background-video-desktop { display: block; object-position: center; }
-#background-video-mobile  { display: none; object-position: center; }
+#background-video-mobile  { display: none;  object-position: center; }
 
 @media (max-width: 600px) {
   #background-video-desktop { display: none; }
@@ -159,34 +159,33 @@ section ul li {
 .footer a {
   color: #fff;
   text-decoration: underline;
-
-
-
-  
-/* ===== Fix fuerte para páginas legales ===== */
-:root {
-  --legal-text: #111;
-  --legal-bg: #fff;
 }
 
-body.page{ 
-  background: var(--legal-bg) !important;
-  color: var(--legal-text) !important;
+/* ===== Fix fuerte para páginas legales (privacidad / términos) ===== */
+:root{
+  --legal-text:#111;
+  --legal-bg:#fff;
 }
 
-/* asegura que TODO el contenido dentro de .doc sea oscuro */
-.page .doc, 
+body.page{
+  background:var(--legal-bg) !important;
+  color:var(--legal-text) !important;
+}
+
+/* Si envolvés el contenido en .doc */
+.page .doc,
 .page .doc *{
-  color: var(--legal-text) !important;
-  background: var(--legal-bg) !important; /* por si algún bloque trae fondo claro/transparente */
+  color:var(--legal-text) !important;
+  background:var(--legal-bg) !important;
 }
-
-/* enlaces visibles */
 .page .doc a{
-  color: var(--legal-text) !important;
+  color:var(--legal-text) !important;
   text-decoration: underline;
 }
 
-
-.page .doc a { text-decoration: underline; }
-
+/* Fallback por si aún no usás .doc (se activará cuando el body tenga class="page") */
+.page section,
+.page section *{
+  color:var(--legal-text) !important;
+  background:var(--legal-bg) !important;
+}
