@@ -159,6 +159,27 @@ section ul li {
 .footer a {
   color: #fff;
   text-decoration: underline;
+
+  /* ===== Fix páginas legales (privacidad / términos) ===== */
+body.page { 
+  background: #fff;     /* fondo blanco */
+  color: #111;          /* texto negro/gris muy oscuro */
+}
+
+.page .doc {
+  background: #fff;
+  color: #111;
+}
+
+.page h1, .page h2, .page h3,
+.page p, .page li, .page a {
+  color: #111;          /* asegurar títulos, párrafos, listas y links */
+}
+
+.page a { 
+  text-decoration: underline; /* mantener subrayado para claridad */
+}
+
 }
 
 .footer a:hover {
