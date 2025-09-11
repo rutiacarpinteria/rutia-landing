@@ -163,21 +163,30 @@ section ul li {
 
 
   
-/* ===== Fix páginas legales (privacidad / términos) ===== */
-.page { 
-  background: #fff !important;   /* fondo claro */
-  color: #111 !important;        /* texto oscuro */
+/* ===== Fix fuerte para páginas legales ===== */
+:root {
+  --legal-text: #111;
+  --legal-bg: #fff;
 }
 
-.page .doc { 
-  background: #fff !important; 
-  color: #111 !important;
+body.page{ 
+  background: var(--legal-bg) !important;
+  color: var(--legal-text) !important;
 }
 
-.page .doc h1, .page .doc h2, .page .doc h3,
-.page .doc p, .page .doc li, .page .doc a {
-  color: #111 !important;
+/* asegura que TODO el contenido dentro de .doc sea oscuro */
+.page .doc, 
+.page .doc *{
+  color: var(--legal-text) !important;
+  background: var(--legal-bg) !important; /* por si algún bloque trae fondo claro/transparente */
 }
+
+/* enlaces visibles */
+.page .doc a{
+  color: var(--legal-text) !important;
+  text-decoration: underline;
+}
+
 
 .page .doc a { text-decoration: underline; }
 
