@@ -90,9 +90,7 @@
       <!-- Modo INGRESO -->
       <div class="card" id="cardIngreso">
         <div class="section">Ingresar</div>
-        <p class="hint">Tu <b>usuario es tu nombre</b>. Ingresá con el mismo nombre con
-          el que te registraste.</p>
-        <label>Nombre (tu usuario) <span class="req">*</span></label>
+        <label>Usuario (tu Nombre registrado) <span class="req">*</span></label>
         <input id="inNombre" type="text" autocomplete="name" placeholder="Tu nombre">
         <button id="btnIngresar" onclick="ingresar()">Ingresar</button>
         <div class="err" id="ingErr"></div>
@@ -183,7 +181,7 @@
       </div>
     </div>
 
-    <p class="foot">Rutiá · Fabricación y Mecanizado CNC</p>
+    <p class="foot">Rutiá · Fabricación y Mecanizado CNC · <span id="year"></span></p>
   </div>
 
   <script>
@@ -220,6 +218,7 @@
 
     // Al cargar: si hay usuario en sessionStorage, saltar directo a la calculadora.
     window.addEventListener('load', function(){
+      el('year').textContent = new Date().getFullYear();  // año actual en el pie
       var u = null;
       try{ u = sessionStorage.getItem('calc_usuario'); }catch(e){}
       if(u){ entrarCalc(u); } else { modo('ingreso'); el('inNombre').focus(); }
