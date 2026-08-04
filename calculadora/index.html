@@ -1,27 +1,257 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
-<meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbxwBDiX4dzbQMUSBykXZdkWZuCFY2nngf6d9jLSir6lUSfUiIhnqXpn3bO_7qOachD2/exec">
-<title>Calculadora de Costo de Mecanizado — Rutiá</title>
-<meta property="og:title" content="Calculadora de Costo de Mecanizado — Rutiá">
-<meta property="og:description" content="Cotizá al instante el costo de mecanizado CNC de tu proyecto.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://rutia.uy/calculadora">
-<meta property="og:image" content="https://rutia.uy/logo_cuadrado_web.png">
-<style>
-  body{background:#0f1115;color:#9aa4b2;font-family:Arial,sans-serif;margin:0;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    min-height:100vh;gap:16px;text-align:center;padding:24px}
-  a{color:#1a1206;background:linear-gradient(180deg,#f0a94a,#d98a2b);padding:12px 22px;
-    border-radius:11px;font-weight:700;text-decoration:none}
-</style>
-<script>location.replace("https://script.google.com/macros/s/AKfycbxwBDiX4dzbQMUSBykXZdkWZuCFY2nngf6d9jLSir6lUSfUiIhnqXpn3bO_7qOachD2/exec");</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Costo de Mecanizado — Rutiá</title>
+  <meta name="description" content="Cotizá al instante el costo de mecanizado CNC de tu proyecto.">
+  <!-- OpenGraph (preview propio para WhatsApp / redes) -->
+  <meta property="og:title" content="Calculadora de Costo de Mecanizado — Rutiá">
+  <meta property="og:description" content="Cotizá al instante el costo de mecanizado CNC de tu proyecto.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://rutia.uy/calculadora">
+  <meta property="og:image" content="https://rutia.uy/logo_cuadrado_web.png">
+  <link rel="icon" href="/favicon_rutia_r.png" type="image/png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap');
+    :root{
+      --bg:#0f1115; --card:#1a1e26; --line:#2b313c; --txt:#e8eaed;
+      --muted:#9aa4b2; --accent:#d98a2b; --accent2:#f0a94a; --ok:#2ec18a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--txt);
+      font-family:'Raleway',-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      display:flex; justify-content:center; padding:24px 14px;
+    }
+    .wrap{width:100%; max-width:440px}
+    h1{font-size:20px; margin:0 0 6px; font-weight:700}
+    .sub{color:var(--muted); font-size:13px; margin:0 0 18px; line-height:1.5}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px}
+    label{display:block; font-size:13px; color:var(--muted); margin:14px 0 5px}
+    label:first-of-type{margin-top:0}
+    .req{color:var(--accent2)}
+    .row{display:flex; gap:10px}
+    .row>div{flex:1}
+    input,select{
+      width:100%; background:#11151c; border:1px solid var(--line); color:var(--txt);
+      border-radius:9px; padding:11px 12px; font-size:16px; outline:none;
+    }
+    input:focus,select:focus{border-color:var(--accent)}
+    input.invalid{border-color:#ff8686}
+    .section{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.7px;
+      color:var(--accent2); margin:0 0 4px}
+    .divider{border-top:1px solid var(--line); margin:22px 0 16px}
+    button{
+      width:100%; margin-top:20px; padding:14px; font-size:16px; font-weight:700;
+      color:#1a1206; background:linear-gradient(180deg,var(--accent2),var(--accent));
+      border:none; border-radius:11px; cursor:pointer;
+    }
+    button:disabled{opacity:.6; cursor:default}
+    .btns{display:flex; gap:10px}
+    .btns #btn{flex:2}
+    button.secondary{
+      flex:1; color:var(--muted); background:transparent; border:1px solid var(--line);
+      font-weight:600;
+    }
+    button.secondary:hover{border-color:var(--accent); color:var(--txt)}
+    .logo{display:block; margin:22px auto; width:55%; max-width:150px; opacity:.9}
+    .result{
+      margin-top:18px; text-align:center; opacity:0; transition:opacity .25s;
+      border-top:1px dashed var(--line); padding-top:18px;
+    }
+    .result.show{opacity:1}
+    .price{font-size:34px; font-weight:800; letter-spacing:.3px}
+    .price .cur{font-size:16px; color:var(--muted); font-weight:600}
+    .usd{color:var(--muted); font-size:15px; margin-top:4px}
+    .note{color:var(--muted); font-size:11.5px; margin-top:14px; line-height:1.5; text-align:center}
+    .err{color:#ff8686; font-size:13px; text-align:center; margin-top:14px}
+    .foot{color:#5b6472; font-size:11px; text-align:center; margin-top:16px}
+  </style>
 </head>
 <body>
-  Redirigiendo a la calculadora…
-  <a href="https://script.google.com/macros/s/AKfycbxwBDiX4dzbQMUSBykXZdkWZuCFY2nngf6d9jLSir6lUSfUiIhnqXpn3bO_7qOachD2/exec">Continuar</a>
+  <div class="wrap">
+    <h1>Calculadora de Costo de Mecanizado</h1>
+    <p class="sub">Estimá al instante el costo de mecanizado CNC de tu proyecto.
+      Completá tus datos y la geometría de la pieza.</p>
+
+    <div class="card">
+      <div class="section">Tus datos</div>
+      <label>Nombre <span class="req">*</span></label>
+      <input id="nombre" type="text" autocomplete="name" placeholder="Nombre y apellido">
+      <label>Empresa / Estudio <span class="req">*</span></label>
+      <input id="empresa" type="text" autocomplete="organization" placeholder="Empresa o estudio">
+      <label>Email <span class="req">*</span></label>
+      <input id="email" type="email" autocomplete="email" inputmode="email" placeholder="tucorreo@ejemplo.com">
+      <label>Nombre del proyecto</label>
+      <input id="proyecto" type="text" autocomplete="off" placeholder="Referencia del trabajo (opcional)">
+
+      <div class="divider"></div>
+      <div class="section">Mecanizado</div>
+      <div class="row">
+        <div>
+          <label>Metros lineales de corte</label>
+          <input id="ml" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
+        </div>
+        <div>
+          <label>m² de rebaje / desbaste</label>
+          <input id="m2" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Perforaciones</label>
+          <input id="perf" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+        </div>
+        <div>
+          <label>Cantidad de placas/piezas</label>
+          <input id="placas" type="number" min="0" step="1" inputmode="numeric" placeholder="1">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section">Canteado</div>
+      <div class="row">
+        <div>
+          <label>Metros lineales de canteado</label>
+          <input id="cantoMts" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
+        </div>
+        <div>
+          <label>Tipo de canto</label>
+          <select id="cantoTipo"><option value="">Sin canteado</option></select>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button id="btn" onclick="calcular()">Calcular costo</button>
+        <button id="clear" class="secondary" onclick="borrar()">Borrar</button>
+      </div>
+
+      <div class="result" id="result">
+        <div class="price"><span class="cur">$</span> <span id="uyu">—</span> <span class="cur">UYU</span></div>
+        <div class="usd">≈ USD <span id="usd">—</span></div>
+      </div>
+      <img class="logo" src="/logo.svg" alt="Rutiá">
+      <div class="err" id="err"></div>
+
+      <p class="note">Estimación rápida orientativa, sujeta a confirmación.
+        No constituye un presupuesto cerrado.</p>
+    </div>
+    <p class="foot">Rutiá · Fabricación y Mecanizado CNC</p>
+  </div>
+
+  <script>
+    // API de datos (Apps Script). SOLO se le habla por JSONP (GET): devuelve JSON,
+    // nunca UI ni login. Si algún día se re-despliega en una URL /exec nueva,
+    // actualizar esta constante.
+    var CALC_EXEC = "https://script.google.com/macros/s/AKfycbxwBDiX4dzbQMUSBykXZdkWZuCFY2nngf6d9jLSir6lUSfUiIhnqXpn3bO_7qOachD2/exec";
+
+    var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function el(id){ return document.getElementById(id); }
+    function fmt(n){ return Number(n).toLocaleString('es-UY'); }
+
+    /**
+     * Llamada JSONP: inyecta un <script src=EXEC?...&callback=NAME>. El server
+     * responde NAME({...}). Con timeout y limpieza del callback/script.
+     */
+    var jsonpSeq = 0;
+    function jsonp(params, onOk, onErr){
+      var name = '__calc_cb_' + (++jsonpSeq) + '_' + Date.now();
+      var s = document.createElement('script');
+      var timer = setTimeout(function(){ done(); onErr && onErr(new Error('timeout')); }, 20000);
+      function done(){
+        clearTimeout(timer);
+        try{ delete window[name]; }catch(e){ window[name] = undefined; }
+        if(s.parentNode) s.parentNode.removeChild(s);
+      }
+      window[name] = function(data){ done(); onOk && onOk(data); };
+      s.onerror = function(){ done(); onErr && onErr(new Error('network')); };
+      params.callback = name;
+      var qs = Object.keys(params).map(function(k){
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      }).join('&');
+      s.src = CALC_EXEC + '?' + qs;
+      document.head.appendChild(s);
+    }
+
+    // Al cargar: poblar el desplegable de tipos de canto (tarifas en vivo, sin exponerlas).
+    window.addEventListener('load', function(){
+      jsonp({ action: 'cantos' }, function(r){
+        if(!r || !r.ok || !r.canto || !r.canto.length) return;
+        var sel = el('cantoTipo');
+        r.canto.forEach(function(label){
+          var o = document.createElement('option');
+          o.value = label; o.textContent = label;
+          sel.appendChild(o);
+        });
+      });
+      el('nombre').focus();
+    });
+
+    function borrar(){
+      ['ml','m2','perf','placas','cantoMts'].forEach(function(id){ el(id).value = ''; });
+      el('cantoTipo').selectedIndex = 0;
+      el('result').classList.remove('show');
+      el('err').textContent = '';
+    }
+
+    // Valida los 3 campos obligatorios. Devuelve {nombre,empresa,email} o null.
+    function validarContacto(){
+      var nombre  = el('nombre').value.trim();
+      var empresa = el('empresa').value.trim();
+      var email   = el('email').value.trim();
+      var faltan = [];
+      el('nombre').classList.toggle('invalid',  !nombre);
+      el('empresa').classList.toggle('invalid', !empresa);
+      if(!nombre)  faltan.push('nombre');
+      if(!empresa) faltan.push('empresa/estudio');
+      var emailOk = EMAIL_RE.test(email);
+      el('email').classList.toggle('invalid', !emailOk);
+      if(!email)        faltan.push('email');
+      else if(!emailOk) return { _err: 'El email no tiene un formato válido.' };
+      if(faltan.length) return { _err: 'Completá: ' + faltan.join(', ') + '.' };
+      return { nombre: nombre, empresa: empresa, email: email };
+    }
+
+    function calcular(){
+      var btn = el('btn'), err = el('err'), res = el('result');
+      err.textContent = '';
+
+      var c = validarContacto();
+      if(c._err){ err.textContent = c._err; res.classList.remove('show'); return; }
+
+      btn.disabled = true; btn.textContent = 'Calculando…';
+
+      var params = {
+        action:    'calc',
+        nombre:    c.nombre,
+        empresa:   c.empresa,
+        email:     c.email,
+        proyecto:  el('proyecto').value.trim(),
+        ml:        el('ml').value || 0,
+        m2:        el('m2').value || 0,
+        perf:      el('perf').value || 0,
+        placas:    el('placas').value || 0,
+        cantoMts:  el('cantoMts').value || 0,
+        cantoTipo: el('cantoTipo').value || ''
+      };
+
+      jsonp(params, function(r){
+        btn.disabled = false; btn.textContent = 'Calcular costo';
+        if(!r || !r.ok){
+          err.textContent = 'No se pudo calcular' + (r && r.error ? ': ' + r.error : '.');
+          res.classList.remove('show'); return;
+        }
+        el('uyu').textContent = fmt(r.uyu);
+        el('usd').textContent = fmt(r.usd);
+        res.classList.add('show');
+      }, function(){
+        btn.disabled = false; btn.textContent = 'Calcular costo';
+        err.textContent = 'No se pudo contactar el servicio. Reintentá en un momento.';
+        res.classList.remove('show');
+      });
+    }
+  </script>
 </body>
 </html>
