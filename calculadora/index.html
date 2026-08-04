@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Calculadora de Costo de Mecanizado — Rutiá</title>
   <meta name="description" content="Cotizá al instante el costo de mecanizado CNC de tu proyecto.">
-  <!-- OpenGraph (preview propio para WhatsApp / redes) -->
   <meta property="og:title" content="Calculadora de Costo de Mecanizado — Rutiá">
   <meta property="og:description" content="Cotizá al instante el costo de mecanizado CNC de tu proyecto.">
   <meta property="og:type" content="website">
@@ -55,6 +54,10 @@
       font-weight:600;
     }
     button.secondary:hover{border-color:var(--accent); color:var(--txt)}
+    .switch{margin-top:16px; text-align:center; font-size:13px; color:var(--muted)}
+    .switch a{color:var(--accent2); cursor:pointer; text-decoration:none; font-weight:600}
+    .hint{font-size:12.5px; color:var(--muted); line-height:1.5; margin:0 0 4px}
+    .hint b{color:var(--txt)}
     .logo{display:block; margin:22px auto; width:55%; max-width:150px; opacity:.9}
     .result{
       margin-top:18px; text-align:center; opacity:0; transition:opacity .25s;
@@ -66,95 +69,135 @@
     .usd{color:var(--muted); font-size:15px; margin-top:4px}
     .note{color:var(--muted); font-size:11.5px; margin-top:14px; line-height:1.5; text-align:center}
     .err{color:#ff8686; font-size:13px; text-align:center; margin-top:14px}
+    .ok{color:var(--ok); font-size:13px; text-align:center; margin-top:14px}
     .foot{color:#5b6472; font-size:11px; text-align:center; margin-top:16px}
+    .userbar{
+      display:flex; justify-content:space-between; align-items:center;
+      font-size:12.5px; color:var(--muted); margin-bottom:10px; padding:0 4px;
+    }
+    .userbar b{color:var(--txt); font-weight:600}
+    .userbar a{color:var(--accent2); cursor:pointer; text-decoration:none}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Calculadora de Costo de Mecanizado</h1>
-    <p class="sub">Estimá al instante el costo de mecanizado CNC de tu proyecto.
-      Completá tus datos y la geometría de la pieza.</p>
 
-    <div class="card">
-      <div class="section">Tus datos</div>
-      <label>Nombre <span class="req">*</span></label>
-      <input id="nombre" type="text" autocomplete="name" placeholder="Nombre y apellido">
-      <label>Empresa / Estudio <span class="req">*</span></label>
-      <input id="empresa" type="text" autocomplete="organization" placeholder="Empresa o estudio">
-      <label>Email <span class="req">*</span></label>
-      <input id="email" type="email" autocomplete="email" inputmode="email" placeholder="tucorreo@ejemplo.com">
-      <label>Nombre del proyecto</label>
-      <input id="proyecto" type="text" autocomplete="off" placeholder="Referencia del trabajo (opcional)">
+    <!-- ============ CUADRO DE REGISTRO / INGRESO (independiente) ============ -->
+    <div id="authScreen">
+      <p class="sub">Estimá al instante el costo de mecanizado CNC de tu proyecto.</p>
 
-      <div class="divider"></div>
-      <div class="section">Mecanizado</div>
-      <div class="row">
-        <div>
-          <label>Metros lineales de corte</label>
-          <input id="ml" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
-        </div>
-        <div>
-          <label>m² de rebaje / desbaste</label>
-          <input id="m2" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0">
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Perforaciones</label>
-          <input id="perf" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
-        </div>
-        <div>
-          <label>Cantidad de placas/piezas</label>
-          <input id="placas" type="number" min="0" step="1" inputmode="numeric" placeholder="1">
-        </div>
+      <!-- Modo INGRESO -->
+      <div class="card" id="cardIngreso">
+        <div class="section">Ingresar</div>
+        <p class="hint">Tu <b>usuario es tu nombre</b>. Ingresá con el mismo nombre con
+          el que te registraste.</p>
+        <label>Nombre (tu usuario) <span class="req">*</span></label>
+        <input id="inNombre" type="text" autocomplete="name" placeholder="Tu nombre">
+        <button id="btnIngresar" onclick="ingresar()">Ingresar</button>
+        <div class="err" id="ingErr"></div>
+        <div class="switch">¿Primera vez? <a onclick="modo('registro')">Registrate</a></div>
       </div>
 
-      <div class="divider"></div>
-      <div class="section">Canteado</div>
-      <div class="row">
-        <div>
-          <label>Metros lineales de canteado</label>
-          <input id="cantoMts" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
-        </div>
-        <div>
-          <label>Tipo de canto</label>
-          <select id="cantoTipo"><option value="">Sin canteado</option></select>
-        </div>
+      <!-- Modo REGISTRO -->
+      <div class="card" id="cardRegistro" style="display:none">
+        <div class="section">Registro (una sola vez)</div>
+        <p class="hint">Registrate una vez. Después vas a <b>ingresar solo con tu
+          nombre</b> (tu usuario = tu nombre).</p>
+        <label>Nombre (será tu usuario) <span class="req">*</span></label>
+        <input id="regNombre" type="text" autocomplete="name" placeholder="Nombre y apellido">
+        <label>Empresa / Taller / Estudio <span class="req">*</span></label>
+        <input id="regEmpresa" type="text" autocomplete="organization" placeholder="Empresa, taller o estudio">
+        <label>Email <span class="req">*</span></label>
+        <input id="regEmail" type="email" autocomplete="email" inputmode="email" placeholder="tucorreo@ejemplo.com">
+        <button id="btnRegistrar" onclick="registrarse()">Registrarme</button>
+        <div class="err" id="regErr"></div>
+        <div class="switch">¿Ya te registraste? <a onclick="modo('ingreso')">Ingresá con tu nombre</a></div>
       </div>
 
-      <div class="btns">
-        <button id="btn" onclick="calcular()">Calcular costo</button>
-        <button id="clear" class="secondary" onclick="borrar()">Borrar</button>
-      </div>
-
-      <div class="result" id="result">
-        <div class="price"><span class="cur">$</span> <span id="uyu">—</span> <span class="cur">UYU</span></div>
-        <div class="usd">≈ USD <span id="usd">—</span></div>
-      </div>
       <img class="logo" src="/logo.svg" alt="Rutiá">
-      <div class="err" id="err"></div>
-
-      <p class="note">Estimación rápida orientativa, sujeta a confirmación.
-        No constituye un presupuesto cerrado.</p>
     </div>
+
+    <!-- ============ CUADRO CALCULADORA (independiente) ============ -->
+    <div id="calcScreen" style="display:none">
+      <div class="userbar">
+        <span id="userInfo"></span>
+        <a onclick="salir()">Salir</a>
+      </div>
+
+      <div class="card">
+        <div class="section">Proyecto</div>
+        <label>Nombre del proyecto <span class="req">*</span></label>
+        <input id="proyecto" type="text" autocomplete="off" placeholder="Referencia del trabajo">
+
+        <div class="divider"></div>
+        <div class="section">Mecanizado</div>
+        <div class="row">
+          <div>
+            <label>Metros lineales de corte</label>
+            <input id="ml" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
+          </div>
+          <div>
+            <label>m² de rebaje / desbaste</label>
+            <input id="m2" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Perforaciones</label>
+            <input id="perf" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+          </div>
+          <div>
+            <label>Cantidad de placas/piezas</label>
+            <input id="placas" type="number" min="0" step="1" inputmode="numeric" placeholder="1">
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section">Canteado</div>
+        <div class="row">
+          <div>
+            <label>Metros lineales de canteado</label>
+            <input id="cantoMts" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
+          </div>
+          <div>
+            <label>Tipo de canto</label>
+            <select id="cantoTipo"><option value="">Sin canteado</option></select>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button id="btn" onclick="calcular()">Calcular costo</button>
+          <button id="clear" class="secondary" onclick="borrar()">Borrar</button>
+        </div>
+
+        <div class="result" id="result">
+          <div class="price"><span class="cur">$</span> <span id="uyu">—</span> <span class="cur">UYU</span></div>
+          <div class="usd">≈ USD <span id="usd">—</span></div>
+        </div>
+        <img class="logo" src="/logo.svg" alt="Rutiá">
+        <div class="err" id="err"></div>
+
+        <p class="note">Estimación rápida orientativa, sujeta a confirmación.
+          No constituye un presupuesto cerrado.</p>
+      </div>
+    </div>
+
     <p class="foot">Rutiá · Fabricación y Mecanizado CNC</p>
   </div>
 
   <script>
     // API de datos (Apps Script). SOLO se le habla por JSONP (GET): devuelve JSON,
-    // nunca UI ni login. Si algún día se re-despliega en una URL /exec nueva,
-    // actualizar esta constante.
+    // nunca UI ni login. Si se re-despliega en una URL /exec nueva, actualizar acá.
     var CALC_EXEC = "https://script.google.com/macros/s/AKfycbxwBDiX4dzbQMUSBykXZdkWZuCFY2nngf6d9jLSir6lUSfUiIhnqXpn3bO_7qOachD2/exec";
 
     var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    var CALC_USER = null;  // nombre del usuario logueado (= su usuario)
 
     function el(id){ return document.getElementById(id); }
     function fmt(n){ return Number(n).toLocaleString('es-UY'); }
 
-    /**
-     * Llamada JSONP: inyecta un <script src=EXEC?...&callback=NAME>. El server
-     * responde NAME({...}). Con timeout y limpieza del callback/script.
-     */
+    /** JSONP: inyecta <script src=EXEC?...&callback=NAME>; el server responde NAME({...}). */
     var jsonpSeq = 0;
     function jsonp(params, onOk, onErr){
       var name = '__calc_cb_' + (++jsonpSeq) + '_' + Date.now();
@@ -175,9 +218,108 @@
       document.head.appendChild(s);
     }
 
-    // Al cargar: poblar el desplegable de tipos de canto (tarifas en vivo, sin exponerlas).
+    // Al cargar: si hay usuario en sessionStorage, saltar directo a la calculadora.
     window.addEventListener('load', function(){
-      jsonp({ action: 'cantos' }, function(r){
+      var u = null;
+      try{ u = sessionStorage.getItem('calc_usuario'); }catch(e){}
+      if(u){ entrarCalc(u); } else { modo('ingreso'); el('inNombre').focus(); }
+    });
+
+    /* -------- Cuadro de Registro / Ingreso -------- */
+
+    function modo(cual){
+      el('ingErr').textContent = ''; el('regErr').textContent = '';
+      if(cual === 'registro'){
+        el('cardIngreso').style.display = 'none';
+        el('cardRegistro').style.display = '';
+        el('regNombre').focus();
+      } else {
+        el('cardRegistro').style.display = 'none';
+        el('cardIngreso').style.display = '';
+        el('inNombre').focus();
+      }
+    }
+
+    function ingresar(){
+      var b = el('btnIngresar'), err = el('ingErr');
+      var nombre = el('inNombre').value.trim();
+      err.textContent = '';
+      el('inNombre').classList.toggle('invalid', !nombre);
+      if(!nombre){ err.textContent = 'Escribí tu nombre.'; return; }
+
+      b.disabled = true; b.textContent = 'Ingresando…';
+      jsonp({ action:'ingresar', nombre:nombre }, function(r){
+        b.disabled = false; b.textContent = 'Ingresar';
+        if(r && r.ok){ entrarCalc(r.nombre); return; }
+        if(r && r.noRegistrado){
+          err.textContent = 'No estás registrado. Registrate primero.';
+          el('regNombre').value = nombre;   // pre-cargo el nombre para registrar
+          setTimeout(function(){ modo('registro'); }, 900);
+          return;
+        }
+        err.textContent = (r && r.error) || 'No se pudo ingresar.';
+      }, function(){
+        b.disabled = false; b.textContent = 'Ingresar';
+        err.textContent = 'No se pudo contactar el servicio. Reintentá.';
+      });
+    }
+
+    function registrarse(){
+      var b = el('btnRegistrar'), err = el('regErr');
+      var nombre  = el('regNombre').value.trim();
+      var empresa = el('regEmpresa').value.trim();
+      var email   = el('regEmail').value.trim();
+      err.textContent = '';
+
+      el('regNombre').classList.toggle('invalid', !nombre);
+      el('regEmpresa').classList.toggle('invalid', !empresa);
+      var emailOk = EMAIL_RE.test(email);
+      el('regEmail').classList.toggle('invalid', !emailOk);
+
+      if(!nombre || !empresa || !email){ err.textContent = 'Completá nombre, empresa/taller/estudio y email.'; return; }
+      if(!emailOk){ err.textContent = 'El email no tiene un formato válido.'; return; }
+
+      b.disabled = true; b.textContent = 'Registrando…';
+      jsonp({ action:'registrar', nombre:nombre, empresa:empresa, email:email }, function(r){
+        b.disabled = false; b.textContent = 'Registrarme';
+        if(r && r.ok){ entrarCalc(r.nombre); return; }
+        if(r && r.yaExiste){
+          err.textContent = 'Ese nombre ya está registrado. Ingresá con tu nombre.';
+          el('inNombre').value = nombre;
+          setTimeout(function(){ modo('ingreso'); }, 900);
+          return;
+        }
+        err.textContent = (r && r.error) || 'No se pudo registrar.';
+      }, function(){
+        b.disabled = false; b.textContent = 'Registrarme';
+        err.textContent = 'No se pudo contactar el servicio. Reintentá.';
+      });
+    }
+
+    /* -------- Cuadro Calculadora -------- */
+
+    function entrarCalc(nombre){
+      CALC_USER = nombre;
+      try{ sessionStorage.setItem('calc_usuario', nombre); }catch(e){}
+      el('authScreen').style.display = 'none';
+      el('calcScreen').style.display = '';
+      el('userInfo').innerHTML = 'Hola, <b>' + nombre + '</b>';
+      cargarCantos();
+      el('proyecto').focus();
+    }
+
+    function salir(){
+      CALC_USER = null;
+      try{ sessionStorage.removeItem('calc_usuario'); }catch(e){}
+      el('calcScreen').style.display = 'none';
+      el('authScreen').style.display = '';
+      modo('ingreso');
+    }
+
+    // Puebla el desplegable de tipos de canto con las etiquetas en vivo.
+    function cargarCantos(){
+      if(el('cantoTipo').options.length > 1) return;  // ya cargado
+      jsonp({ action:'cantos' }, function(r){
         if(!r || !r.ok || !r.canto || !r.canto.length) return;
         var sel = el('cantoTipo');
         r.canto.forEach(function(label){
@@ -186,59 +328,39 @@
           sel.appendChild(o);
         });
       });
-      el('nombre').focus();
-    });
+    }
 
     function borrar(){
       ['ml','m2','perf','placas','cantoMts'].forEach(function(id){ el(id).value = ''; });
       el('cantoTipo').selectedIndex = 0;
       el('result').classList.remove('show');
       el('err').textContent = '';
-    }
-
-    // Valida los 3 campos obligatorios. Devuelve {nombre,empresa,email} o null.
-    function validarContacto(){
-      var nombre  = el('nombre').value.trim();
-      var empresa = el('empresa').value.trim();
-      var email   = el('email').value.trim();
-      var faltan = [];
-      el('nombre').classList.toggle('invalid',  !nombre);
-      el('empresa').classList.toggle('invalid', !empresa);
-      if(!nombre)  faltan.push('nombre');
-      if(!empresa) faltan.push('empresa/estudio');
-      var emailOk = EMAIL_RE.test(email);
-      el('email').classList.toggle('invalid', !emailOk);
-      if(!email)        faltan.push('email');
-      else if(!emailOk) return { _err: 'El email no tiene un formato válido.' };
-      if(faltan.length) return { _err: 'Completá: ' + faltan.join(', ') + '.' };
-      return { nombre: nombre, empresa: empresa, email: email };
+      el('proyecto').focus();
     }
 
     function calcular(){
       var btn = el('btn'), err = el('err'), res = el('result');
       err.textContent = '';
 
-      var c = validarContacto();
-      if(c._err){ err.textContent = c._err; res.classList.remove('show'); return; }
+      var proyecto = el('proyecto').value.trim();
+      el('proyecto').classList.toggle('invalid', !proyecto);
+      if(!proyecto){ err.textContent = 'Poné el nombre del proyecto (obligatorio).'; res.classList.remove('show'); return; }
+      if(!CALC_USER){ salir(); return; }
 
       btn.disabled = true; btn.textContent = 'Calculando…';
-
-      var params = {
+      jsonp({
         action:    'calc',
-        nombre:    c.nombre,
-        empresa:   c.empresa,
-        email:     c.email,
-        proyecto:  el('proyecto').value.trim(),
+        usuario:   CALC_USER,
+        proyecto:  proyecto,
         ml:        el('ml').value || 0,
         m2:        el('m2').value || 0,
         perf:      el('perf').value || 0,
         placas:    el('placas').value || 0,
         cantoMts:  el('cantoMts').value || 0,
         cantoTipo: el('cantoTipo').value || ''
-      };
-
-      jsonp(params, function(r){
+      }, function(r){
         btn.disabled = false; btn.textContent = 'Calcular costo';
+        if(r && r.noRegistrado){ err.textContent = 'Tu sesión no es válida. Ingresá de nuevo.'; salir(); return; }
         if(!r || !r.ok){
           err.textContent = 'No se pudo calcular' + (r && r.error ? ': ' + r.error : '.');
           res.classList.remove('show'); return;
