@@ -71,6 +71,9 @@
     .price{font-size:34px; font-weight:800; letter-spacing:.3px}
     .price .cur{font-size:16px; color:var(--muted); font-weight:600}
     .usd{color:var(--muted); font-size:15px; margin-top:4px}
+    .recibo{margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
+    .recibo .kbtn{margin:0}
+    .recibo .kbtn:disabled{opacity:.55; cursor:default; border-color:var(--line); color:var(--muted)}
     .note{color:var(--muted); font-size:11.5px; margin-top:14px; line-height:1.5; text-align:center}
     .err{color:#ff8686; font-size:13px; text-align:center; margin-top:14px}
     .ok{color:var(--ok); font-size:13px; text-align:center; margin-top:14px}
@@ -98,6 +101,7 @@
     .kadd:hover,.kdel:hover,.ang:hover{border-color:var(--accent); color:var(--txt)}
     .ang.sel:hover{color:#1a1206}
     .khint{font-size:13px; color:var(--accent2); font-weight:700; margin-top:12px}
+    .khint360{font-size:11.5px; color:var(--muted); line-height:1.4; margin-top:8px}
     .kwarn{color:#ff8686; font-size:12.5px; margin-top:6px}
     .kbtn{width:auto; margin:12px 0 0; padding:9px 14px; font-size:13px; color:var(--muted);
       background:transparent; border:1px solid var(--line); border-radius:9px; font-weight:600; cursor:pointer}
@@ -249,15 +253,22 @@
         </div>
 
         <div class="divider"></div>
-        <div class="section">Canteado</div>
-        <div class="row">
-          <div>
-            <label>Metros lineales de canteado</label>
-            <input id="cantoMts" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
+        <div class="kcollap" id="cCollap">
+          <div class="kcollap-hd" onclick="cantoToggle()">
+            <span class="kcaret">▶</span>
+            <div class="section">Canteado</div>
           </div>
-          <div>
-            <label>Tipo de canto</label>
-            <select id="cantoTipo"><option value="">Sin canteado</option></select>
+          <div class="kcollap-bd">
+            <div class="row">
+              <div>
+                <label>Metros lineales de canteado</label>
+                <input id="cantoMts" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
+              </div>
+              <div>
+                <label>Tipo de canto</label>
+                <select id="cantoTipo"><option value="">Sin canteado</option></select>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -269,6 +280,11 @@
         <div class="result" id="result">
           <div class="price"><span class="cur">$</span> <span id="uyu">—</span> <span class="cur">UYU</span></div>
           <div class="usd">≈ USD <span id="usd">—</span></div>
+          <div class="recibo">
+            <button type="button" class="kbtn" onclick="descargarComprobante()">⬇ Descargar comprobante</button>
+            <button type="button" class="kbtn" id="btnEmail" onclick="enviarComprobanteEmail()">✉ Enviármelo por email</button>
+          </div>
+          <div class="ok" id="reciboMsg"></div>
         </div>
         <img class="logo" src="/logo.svg" alt="Rutiá">
         <div class="err" id="err"></div>
@@ -446,6 +462,8 @@
       kerfInit();   // resetea alto/largo/piezas + curvas + diagrama del bloque Kerfing
       el('result').classList.remove('show');
       el('err').textContent = '';
+      el('reciboMsg').textContent = '';
+      ultimoPresu = null;
       el('proyecto').focus();
     }
 
@@ -462,10 +480,14 @@
     // ~$4.3k (≈ real). PALANCA de ajuste: subir = más caro, bajar = más barato.
     // Recalibrar con más trabajos de kerfing a medida que se coticen.
     var KERF_FACTOR = 1.4;
-    var kerfCurvas = [];   // [{radio(cm), ang:(90|180|360|nº), custom:bool}]
+    // Margen de seguridad de curvado: se agregan 100 mm al desarrollo de CADA curva
+    // SOLO para el ranurado (más ranuras = más margen para curvar sin partir). NO se
+    // usa para diagramar ni acotar (el esquema muestra el desarrollo real, sin margen).
+    var KERF_MARGEN_MM = 100;
+    var kerfCurvas = [];   // [{radio(cm), ang:(360|nº), custom:bool}] — 360 = toda la sección curva ocupa el ancho
 
     function kerfInit(){
-      kerfCurvas = [{ radio:'', ang:90, custom:false }];
+      kerfCurvas = [{ radio:'', ang:360, custom:false }];
       el('kAlto').value = ''; el('kLargo').value = ''; el('kPiezas').value = '';
       el('kWarn').style.display = 'none';
       el('kCollap').classList.remove('open');   // arranca oculto (se despliega con la flecha)
@@ -474,39 +496,50 @@
       kerfUpdate();
     }
 
-    // Despliega / oculta el bloque de kerfing.
+    // Despliega / oculta los bloques plegables (kerfing y canteado).
     function kerfToggle(){ el('kCollap').classList.toggle('open'); }
+    function cantoToggle(){ el('cCollap').classList.toggle('open'); }
 
     function kerfAddCurva(){
-      kerfCurvas.push({ radio:'', ang:90, custom:false });
+      kerfCurvas.push({ radio:'', ang:360, custom:false });
       kerfRenderCurvas();
       kerfUpdate();
     }
 
-    // Longitud desarrollada (mm) de todas las curvas (arco = radio × ángulo). Sirve
-    // para los tramos planos del diagrama y para validar que las curvas entren en el largo.
+    // Ancho de la pieza (mm), tomado del campo "Ancho (cm)".
+    function kerfAnchoMm(){ return (parseFloat(el('kLargo').value) || 0) * 10; }
+
+    // Desarrollo (mm) de UNA curva, SIN margen — para diagramar y acotar.
+    //  - 360° (no personalizado): la sección curva ocupa TODO el ancho de la pieza
+    //    (cilindro completo) → desarrollo = ancho, calculado automáticamente.
+    //  - Personalizado: arco = radio × ángulo.
+    function kerfDesarrolloCurva_(c){
+      if(Number(c.ang) === 360 && !c.custom) return kerfAnchoMm();   // 360 = todo el ancho
+      var r = (parseFloat(c.radio) || 0) * 10;        // cm -> mm
+      var ang = Number(c.ang) || 0;
+      return (r > 0 && ang) ? r * (ang * Math.PI / 180) : 0;
+    }
+
+    // Longitud desarrollada (mm) de todas las curvas (sin margen). Sirve para los
+    // tramos planos del diagrama y para validar que las curvas entren en el ancho.
     function kerfDesarrolloMm(){
       var s = 0;
-      kerfCurvas.forEach(function(c){
-        var r = (parseFloat(c.radio) || 0) * 10;        // cm -> mm
-        var ang = Number(c.ang) || 0;
-        if(r > 0 && ang) s += r * (ang * Math.PI / 180);
-      });
+      kerfCurvas.forEach(function(c){ s += kerfDesarrolloCurva_(c); });
       return s;
     }
 
     // Metros de ranurado facturables (incluye el factor de pasadas KERF_FACTOR) × piezas.
+    // A cada curva se le suma el margen de seguridad KERF_MARGEN_MM (solo para el cálculo).
     function kerfMetros(){
-      var alto = (parseFloat(el('kAlto').value) || 0) * 10;   // cm -> mm
+      var alto = (parseFloat(el('kAlto').value) || 0) * 10;   // cm -> mm (Largo del panel)
       var piezas = parseInt(el('kPiezas').value, 10) || 1;
       var S = KERF.W + KERF.costilla;
       var Lv = alto + 2 * KERF.overcut + 2 * KERF.Rf;         // recorrido vertical de cada ranura
       var totalMm = 0;
       kerfCurvas.forEach(function(c){
-        var r = (parseFloat(c.radio) || 0) * 10;
-        var ang = Number(c.ang) || 0;
-        if(r <= 0 || !ang || alto <= 0) return;
-        var desarrollo = r * (ang * Math.PI / 180);
+        var desarrollo = kerfDesarrolloCurva_(c);
+        if(desarrollo <= 0 || alto <= 0) return;
+        desarrollo += KERF_MARGEN_MM;                            // margen de seguridad de curvado (solo cálculo)
         var N = Math.ceil((desarrollo + 2 * KERF.comp) / S) + 1;  // nº de ranuras
         var Ltraj = N * Lv + (N - 1) * S;                        // viborita completa
         totalMm += Ltraj;
@@ -532,20 +565,22 @@
         };
         head.appendChild(del); card.appendChild(head);
 
-        // Bloque Radio (separado)
-        card.appendChild(kfield('Radio (cm)', kinput(c.radio, '0.1', 'decimal', false, function(v){ c.radio = v; kerfUpdate(); })));
+        // Radio (cm) y Ángulo al MISMO nivel.
+        var row = document.createElement('div'); row.className = 'krow';
 
-        // Bloque Ángulo (separado): presets 90/180/360 + Personalizar
+        // Radio (cm)
+        row.appendChild(kfield('Radio (cm)', kinput(c.radio, '0.1', 'decimal', false, function(v){ c.radio = v; kerfUpdate(); })));
+
+        // Ángulo: 360° (todo el ancho) + Personalizar. Se quitaron 90° y 180°:
+        // el ángulo no es crítico (la pieza ranurada se lleva luego al ángulo que se quiera).
         var af = document.createElement('div'); af.className = 'kfield';
         var al = document.createElement('label'); al.textContent = 'Ángulo'; af.appendChild(al);
         var angs = document.createElement('div'); angs.className = 'angs';
-        [90,180,360].forEach(function(val){
-          var b = document.createElement('button'); b.type = 'button';
-          b.className = 'ang' + (!c.custom && Number(c.ang) === val ? ' sel' : '');
-          b.textContent = val + '°';
-          b.onclick = function(){ c.custom = false; c.ang = val; kerfRenderCurvas(); kerfUpdate(); };
-          angs.appendChild(b);
-        });
+        var b360 = document.createElement('button'); b360.type = 'button';
+        b360.className = 'ang' + (!c.custom && Number(c.ang) === 360 ? ' sel' : '');
+        b360.textContent = '360°';
+        b360.onclick = function(){ c.custom = false; c.ang = 360; kerfRenderCurvas(); kerfUpdate(); };
+        angs.appendChild(b360);
         var bp = document.createElement('button'); bp.type = 'button';
         bp.className = 'ang' + (c.custom ? ' sel' : '');
         bp.textContent = 'Personalizar';
@@ -554,9 +589,16 @@
           kerfRenderCurvas(); kerfUpdate();
         };
         angs.appendChild(bp);
-        af.appendChild(angs); card.appendChild(af);
+        af.appendChild(angs); row.appendChild(af);
+        card.appendChild(row);
 
-        // Si es personalizado, campo de ángulo libre (grados)
+        // 360°: aviso de que la sección curva ocupa todo el ancho (se calcula sola).
+        if(!c.custom && Number(c.ang) === 360){
+          var n = document.createElement('div'); n.className = 'khint360';
+          n.textContent = 'La sección curva ocupa todo el ancho de la pieza (se calcula automáticamente).';
+          card.appendChild(n);
+        }
+        // Personalizado: campo de ángulo libre (grados).
         if(c.custom){
           card.appendChild(kfield('Ángulo (°)', kinput(c.ang, '1', 'numeric', false, function(v){ c.ang = v; kerfUpdate(); })));
         }
@@ -615,8 +657,11 @@
 
       var curvas = [];
       kerfCurvas.forEach(function(c){
+        var len = kerfDesarrolloCurva_(c);          // mm, sin margen (para diagramar/acotar)
+        if(len <= 0) return;
         var r = parseFloat(c.radio) || 0, ang = Number(c.ang) || 0;
-        if(r > 0 && ang) curvas.push({ r:r, ang:ang, len:(r * 10) * (ang * Math.PI / 180) });
+        var lbl = (r > 0 ? 'R' + r + '·' : '') + (ang || '') + '°';
+        curvas.push({ r:r, ang:ang, len:len, lbl:lbl });
       });
       if(!curvas.length || largoMm <= 0){
         body.innerHTML = '<p class="kmodal-cap">Cargá Largo, Ancho y al menos una curva para ver el esquema.</p>';
@@ -630,7 +675,7 @@
       var seq = [];
       curvas.forEach(function(cv){
         if(planoCada > 0.5) seq.push({ tipo:'plano', len:planoCada });
-        seq.push({ tipo:'curva', len:cv.len, r:cv.r, ang:cv.ang });
+        seq.push({ tipo:'curva', len:cv.len, lbl:cv.lbl });
       });
       if(planoCada > 0.5) seq.push({ tipo:'plano', len:planoCada });
 
@@ -660,7 +705,7 @@
         if(z.tipo === 'curva'){
           // Zona de ranurado: solo relleno rayado, sin borde (sin la línea gruesa a la izquierda).
           svg += '<rect x="' + x.toFixed(1) + '" y="' + mT + '" width="' + w.toFixed(1) + '" height="' + Hp.toFixed(1) + '" fill="url(#khB)"/>';
-          if(w > 46) svg += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (mT + 15) + '" fill="#e8eaed" font-size="12" text-anchor="middle">R' + z.r + '·' + z.ang + '°</text>';
+          if(w > 46) svg += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (mT + 15) + '" fill="#e8eaed" font-size="12" text-anchor="middle">' + z.lbl + '</text>';
         } else {
           svg += '<rect x="' + x.toFixed(1) + '" y="' + mT + '" width="' + w.toFixed(1) + '" height="' + Hp.toFixed(1) + '" fill="#161b23"/>';
         }
@@ -692,21 +737,37 @@
 
       // El ranurado (con su doble pasada) se suma a los metros lineales de corte:
       // el backend cotiza por 'ml', y el kerfing es 'ml' de corte. Todo frontend.
+      var mlBase = parseFloat(el('ml').value) || 0;
       var mlKerf = kerfMetros();
-      var mlTotal = Math.round(((parseFloat(el('ml').value) || 0) + mlKerf) * 100) / 100;
+      var mlTotal = Math.round((mlBase + mlKerf) * 100) / 100;
+      var espSel = el('espesor');
+      var inputs = {
+        proyecto:     proyecto,
+        espesorLabel: espSel.options[espSel.selectedIndex].text,
+        espesor:      espSel.value,
+        mlBase:       mlBase,
+        mlKerf:       Math.round(mlKerf * 100) / 100,
+        mlTotal:      mlTotal,
+        m2:           parseFloat(el('m2').value) || 0,
+        perf:         parseInt(el('perf').value, 10) || 0,
+        placas:       parseInt(el('placas').value, 10) || 0,
+        cantoMts:     parseFloat(el('cantoMts').value) || 0,
+        cantoTipo:    el('cantoTipo').value || ''
+      };
 
+      el('reciboMsg').textContent = '';
       btn.disabled = true; btn.textContent = 'Calculando…';
       jsonp({
         action:    'calc',
         usuario:   CALC_USER,
         proyecto:  proyecto,
         ml:        mlTotal,
-        m2:        el('m2').value || 0,
-        perf:      el('perf').value || 0,
-        placas:    el('placas').value || 0,
-        espesor:   el('espesor').value || 2,
-        cantoMts:  el('cantoMts').value || 0,
-        cantoTipo: el('cantoTipo').value || ''
+        m2:        inputs.m2,
+        perf:      inputs.perf,
+        placas:    inputs.placas,
+        espesor:   inputs.espesor,
+        cantoMts:  inputs.cantoMts,
+        cantoTipo: inputs.cantoTipo
       }, function(r){
         btn.disabled = false; btn.textContent = 'Calcular costo';
         if(r && r.noRegistrado){ err.textContent = 'Tu sesión no es válida. Ingresá de nuevo.'; salir(); return; }
@@ -716,11 +777,117 @@
         }
         el('uyu').textContent = fmt(r.uyu);
         el('usd').textContent = fmt(r.usd);
+        // Guardo el presupuesto para el comprobante (descarga / email).
+        ultimoPresu = Object.assign({
+          usuario: CALC_USER, uyu: r.uyu, usd: r.usd, fecha: new Date()
+        }, inputs);
         res.classList.add('show');
       }, function(){
         btn.disabled = false; btn.textContent = 'Calcular costo';
         err.textContent = 'No se pudo contactar el servicio. Reintentá en un momento.';
         res.classList.remove('show');
+      });
+    }
+
+    /* -------- Comprobante para el cliente (descargar / email) -------- */
+    var ultimoPresu = null;   // último cálculo, para el comprobante
+
+    // Fecha corta local dd/mm/aaaa.
+    function fechaCorta(d){
+      d = d || new Date();
+      var z = function(n){ return (n < 10 ? '0' : '') + n; };
+      return z(d.getDate()) + '/' + z(d.getMonth() + 1) + '/' + d.getFullYear();
+    }
+
+    // Filas de detalle del comprobante (compartidas por descarga y email).
+    // Devuelve [[etiqueta, valor], ...] solo con lo que tenga dato.
+    function comprobanteFilas(pr){
+      var f = [];
+      f.push(['Espesor del material', pr.espesorLabel]);
+      f.push(['Metros lineales de corte', fmt(pr.mlTotal) + ' m' + (pr.mlKerf > 0 ? ' (incl. curvado)' : '')]);
+      if(pr.mlKerf > 0) f.push(['— de los cuales, curvado / kerfing', fmt(pr.mlKerf) + ' m']);
+      if(pr.m2 > 0)   f.push(['m² de rebaje / desbaste', fmt(pr.m2)]);
+      if(pr.perf > 0) f.push(['Taladros / perforaciones', fmt(pr.perf)]);
+      if(pr.placas > 0) f.push(['Cantidad de placas', fmt(pr.placas)]);
+      if(pr.cantoMts > 0) f.push(['Canteado', fmt(pr.cantoMts) + ' m' + (pr.cantoTipo ? ' · ' + pr.cantoTipo : '')]);
+      return f;
+    }
+
+    // HTML autocontenido del comprobante (para abrir en ventana e imprimir/guardar PDF).
+    function comprobanteHTML(pr){
+      var filas = comprobanteFilas(pr).map(function(x){
+        return '<tr><td>' + x[0] + '</td><td class="v">' + x[1] + '</td></tr>';
+      }).join('');
+      return '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">' +
+        '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+        '<title>Comprobante — ' + pr.proyecto + ' · Rutiá</title><style>' +
+        "@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap');" +
+        'body{font-family:Raleway,Arial,sans-serif;color:#1a1206;margin:0;padding:32px;max-width:640px}' +
+        'h1{font-size:20px;margin:0 0 2px}.muted{color:#6b6257;font-size:13px;margin:0 0 18px}' +
+        'table{width:100%;border-collapse:collapse;margin:8px 0 16px}' +
+        'td{padding:8px 4px;border-bottom:1px solid #eee;font-size:14px;vertical-align:top}' +
+        'td.v{text-align:right;font-weight:600}.tot{margin-top:8px;padding:14px 16px;background:#faf4ea;' +
+        'border:1px solid #eadfca;border-radius:10px}.tot .big{font-size:26px;font-weight:800}' +
+        '.tot .usd{color:#6b6257;font-size:14px}.note{color:#6b6257;font-size:11.5px;margin-top:20px;line-height:1.5}' +
+        '.brand{font-weight:800;color:#d98a2b}@media print{body{padding:0}}</style></head><body>' +
+        '<h1>Estimación de Costo de Mecanizado</h1>' +
+        '<p class="muted"><span class="brand">Rutiá</span> · Fabricación y Mecanizado CNC</p>' +
+        '<table>' +
+        '<tr><td>Cliente</td><td class="v">' + (pr.usuario || '') + '</td></tr>' +
+        '<tr><td>Proyecto</td><td class="v">' + pr.proyecto + '</td></tr>' +
+        '<tr><td>Fecha</td><td class="v">' + fechaCorta(pr.fecha) + '</td></tr>' +
+        filas + '</table>' +
+        '<div class="tot"><div class="big">$ ' + fmt(pr.uyu) + ' UYU</div>' +
+        '<div class="usd">≈ USD ' + fmt(pr.usd) + '</div></div>' +
+        '<p class="note">Estimación rápida orientativa, sujeta a confirmación. ' +
+        'No constituye un presupuesto cerrado.</p></body></html>';
+    }
+
+    // Descarga: abre el comprobante en una ventana nueva y lanza imprimir
+    // (el cliente puede "Guardar como PDF" o imprimir). Frontend puro.
+    function descargarComprobante(){
+      if(!ultimoPresu){ return; }
+      var w = window.open('', '_blank');
+      if(!w){ el('reciboMsg').textContent = 'Permití las ventanas emergentes para descargar el comprobante.'; return; }
+      w.document.open();
+      w.document.write(comprobanteHTML(ultimoPresu));
+      w.document.close();
+      w.focus();
+      setTimeout(function(){ try{ w.print(); }catch(e){} }, 450);   // dar tiempo a la fuente
+    }
+
+    // Email: el backend (Apps Script) le manda el comprobante al email registrado.
+    function enviarComprobanteEmail(){
+      if(!ultimoPresu){ return; }
+      var b = el('btnEmail'), msg = el('reciboMsg');
+      msg.textContent = ''; msg.className = 'ok';
+      b.disabled = true; b.textContent = 'Enviando…';
+      jsonp({
+        action:    'email',
+        usuario:   ultimoPresu.usuario,
+        proyecto:  ultimoPresu.proyecto,
+        ml:        ultimoPresu.mlTotal,
+        mlBase:    ultimoPresu.mlBase,
+        mlKerf:    ultimoPresu.mlKerf,
+        m2:        ultimoPresu.m2,
+        perf:      ultimoPresu.perf,
+        placas:    ultimoPresu.placas,
+        espesor:   ultimoPresu.espesor,
+        cantoMts:  ultimoPresu.cantoMts,
+        cantoTipo: ultimoPresu.cantoTipo
+      }, function(r){
+        b.disabled = false; b.textContent = '✉ Enviármelo por email';
+        if(r && r.ok){
+          msg.className = 'ok';
+          msg.textContent = '✓ Te lo enviamos' + (r.email ? ' a ' + r.email : '') + '.';
+        } else {
+          msg.className = 'err';
+          msg.textContent = (r && r.error) || 'No se pudo enviar el email.';
+        }
+      }, function(){
+        b.disabled = false; b.textContent = '✉ Enviármelo por email';
+        msg.className = 'err';
+        msg.textContent = 'No se pudo contactar el servicio. Reintentá.';
       });
     }
   </script>
