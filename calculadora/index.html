@@ -649,10 +649,11 @@
       var VBW = Wp + mL + mR, VBH = Hp + mT + mB;
       var sx = Wp / anchoTot;                                       // unidades por mm
       var svg = '<svg viewBox="0 0 ' + VBW.toFixed(0) + ' ' + VBH.toFixed(0) + '" xmlns="http://www.w3.org/2000/svg">';
-      // Hatch: líneas HORIZONTALES simulando el ranurado.
+      // Hatch: líneas que corren a lo LARGO de la pieza (eje vertical = Largo),
+      // simulando las ranuras del kerfing.
       svg += '<defs><pattern id="khB" width="7" height="7" patternUnits="userSpaceOnUse">'
            + '<rect width="7" height="7" fill="#141821"/>'
-           + '<line x1="0" y1="3.5" x2="7" y2="3.5" stroke="#d98a2b" stroke-width="1.4"/></pattern></defs>';
+           + '<line x1="3.5" y1="0" x2="3.5" y2="7" stroke="#d98a2b" stroke-width="1.4"/></pattern></defs>';
       var x = mL;
       seq.forEach(function(z){
         var w = z.len * sx;
