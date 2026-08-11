@@ -101,7 +101,10 @@
     .kadd:hover,.kdel:hover,.ang:hover{border-color:var(--accent); color:var(--txt)}
     .ang.sel:hover{color:#1a1206}
     .khint{font-size:13px; color:var(--accent2); font-weight:700; margin-top:12px}
-    .khint360{font-size:11.5px; color:var(--muted); line-height:1.4; margin-top:8px}
+    /* Radio ó Ángulo: alternativas al mismo nivel, bien separadas */
+    .kexcl{align-items:flex-end; gap:6px; justify-content:space-between}
+    .kexcl .kfield{flex:0 0 auto}
+    .kexcl-o{color:var(--muted); font-size:12px; font-style:italic; padding:0 10px 11px; align-self:flex-end}
     .kwarn{color:#ff8686; font-size:12.5px; margin-top:6px}
     .kbtn{width:auto; margin:12px 0 0; padding:9px 14px; font-size:13px; color:var(--muted);
       background:transparent; border:1px solid var(--line); border-radius:9px; font-weight:600; cursor:pointer}
@@ -484,10 +487,10 @@
     // SOLO para el ranurado (más ranuras = más margen para curvar sin partir). NO se
     // usa para diagramar ni acotar (el esquema muestra el desarrollo real, sin margen).
     var KERF_MARGEN_MM = 100;
-    var kerfCurvas = [];   // [{radio(cm), ang:(360|nº), custom:bool}] — 360 = toda la sección curva ocupa el ancho
+    var kerfCurvas = [];   // [{radio(cm), full:bool}] — full=360°(todo el ancho) ⇄ radio, excluyentes
 
     function kerfInit(){
-      kerfCurvas = [{ radio:'', ang:360, custom:false }];
+      kerfCurvas = [{ radio:'', full:false }];
       el('kAlto').value = ''; el('kLargo').value = ''; el('kPiezas').value = '';
       el('kWarn').style.display = 'none';
       el('kCollap').classList.remove('open');   // arranca oculto (se despliega con la flecha)
@@ -501,7 +504,7 @@
     function cantoToggle(){ el('cCollap').classList.toggle('open'); }
 
     function kerfAddCurva(){
-      kerfCurvas.push({ radio:'', ang:360, custom:false });
+      kerfCurvas.push({ radio:'', full:false });
       kerfRenderCurvas();
       kerfUpdate();
     }
@@ -510,14 +513,14 @@
     function kerfAnchoMm(){ return (parseFloat(el('kLargo').value) || 0) * 10; }
 
     // Desarrollo (mm) de UNA curva, SIN margen — para diagramar y acotar.
-    //  - 360° (no personalizado): la sección curva ocupa TODO el ancho de la pieza
-    //    (cilindro completo) → desarrollo = ancho, calculado automáticamente.
-    //  - Personalizado: arco = radio × ángulo.
+    // El ángulo (360°) y el radio son EXCLUYENTES (uno anula al otro):
+    //  - 360° (c.full): cilindro completo → la sección curva ocupa TODO el ancho de
+    //    la pieza (se calcula solo) → desarrollo = ancho.
+    //  - Radio: circunferencia completa → desarrollo = 2·π·radio.
     function kerfDesarrolloCurva_(c){
-      if(Number(c.ang) === 360 && !c.custom) return kerfAnchoMm();   // 360 = todo el ancho
-      var r = (parseFloat(c.radio) || 0) * 10;        // cm -> mm
-      var ang = Number(c.ang) || 0;
-      return (r > 0 && ang) ? r * (ang * Math.PI / 180) : 0;
+      if(c.full) return kerfAnchoMm();                       // 360° = todo el ancho
+      var r = (parseFloat(c.radio) || 0) * 10;               // cm -> mm
+      return r > 0 ? r * 2 * Math.PI : 0;                    // radio = 2·π·r
     }
 
     // Longitud desarrollada (mm) de todas las curvas (sin margen). Sirve para los
@@ -560,48 +563,36 @@
         del.textContent = '🗑'; del.title = 'Quitar curva';
         del.onclick = function(){
           kerfCurvas.splice(i, 1);
-          if(!kerfCurvas.length) kerfCurvas.push({ radio:'', ang:90, custom:false });
+          if(!kerfCurvas.length) kerfCurvas.push({ radio:'', full:false });
           kerfRenderCurvas(); kerfUpdate();
         };
         head.appendChild(del); card.appendChild(head);
 
-        // Radio (cm) y Ángulo al MISMO nivel.
-        var row = document.createElement('div'); row.className = 'krow';
+        // Radio (cm)  ó  Ángulo (360°) — al mismo nivel, EXCLUYENTES (uno anula al otro).
+        var row = document.createElement('div'); row.className = 'krow kexcl';
 
-        // Radio (cm)
-        row.appendChild(kfield('Radio (cm)', kinput(c.radio, '0.1', 'decimal', false, function(v){ c.radio = v; kerfUpdate(); })));
+        // Radio (cm): deshabilitado si la curva es 360°.
+        var rInp = kinput(c.radio, '0.1', 'decimal', false, function(v){
+          c.radio = v; if(v !== '') c.full = false; kerfUpdate();
+        });
+        if(c.full){ rInp.disabled = true; rInp.value = ''; }
+        row.appendChild(kfield('Radio (cm)', rInp));
 
-        // Ángulo: 360° (todo el ancho) + Personalizar. Se quitaron 90° y 180°:
-        // el ángulo no es crítico (la pieza ranurada se lleva luego al ángulo que se quiera).
+        // Separador "ó" para que se lea que son alternativas.
+        var sep = document.createElement('span'); sep.className = 'kexcl-o'; sep.textContent = 'ó';
+        row.appendChild(sep);
+
+        // Ángulo: único botón 360° (toggle). Anula el radio.
         var af = document.createElement('div'); af.className = 'kfield';
         var al = document.createElement('label'); al.textContent = 'Ángulo'; af.appendChild(al);
         var angs = document.createElement('div'); angs.className = 'angs';
         var b360 = document.createElement('button'); b360.type = 'button';
-        b360.className = 'ang' + (!c.custom && Number(c.ang) === 360 ? ' sel' : '');
+        b360.className = 'ang' + (c.full ? ' sel' : '');
         b360.textContent = '360°';
-        b360.onclick = function(){ c.custom = false; c.ang = 360; kerfRenderCurvas(); kerfUpdate(); };
+        b360.onclick = function(){ c.full = !c.full; if(c.full) c.radio = ''; kerfRenderCurvas(); kerfUpdate(); };
         angs.appendChild(b360);
-        var bp = document.createElement('button'); bp.type = 'button';
-        bp.className = 'ang' + (c.custom ? ' sel' : '');
-        bp.textContent = 'Personalizar';
-        bp.onclick = function(){
-          if(!c.custom){ c.custom = true; c.ang = ''; }   // pasar a modo libre, campo vacío
-          kerfRenderCurvas(); kerfUpdate();
-        };
-        angs.appendChild(bp);
         af.appendChild(angs); row.appendChild(af);
         card.appendChild(row);
-
-        // 360°: aviso de que la sección curva ocupa todo el ancho (se calcula sola).
-        if(!c.custom && Number(c.ang) === 360){
-          var n = document.createElement('div'); n.className = 'khint360';
-          n.textContent = 'La sección curva ocupa todo el ancho de la pieza (se calcula automáticamente).';
-          card.appendChild(n);
-        }
-        // Personalizado: campo de ángulo libre (grados).
-        if(c.custom){
-          card.appendChild(kfield('Ángulo (°)', kinput(c.ang, '1', 'numeric', false, function(v){ c.ang = v; kerfUpdate(); })));
-        }
 
         box.appendChild(card);
       });
@@ -659,9 +650,9 @@
       kerfCurvas.forEach(function(c){
         var len = kerfDesarrolloCurva_(c);          // mm, sin margen (para diagramar/acotar)
         if(len <= 0) return;
-        var r = parseFloat(c.radio) || 0, ang = Number(c.ang) || 0;
-        var lbl = (r > 0 ? 'R' + r + '·' : '') + (ang || '') + '°';
-        curvas.push({ r:r, ang:ang, len:len, lbl:lbl });
+        var r = parseFloat(c.radio) || 0;
+        var lbl = c.full ? '360°' : (r > 0 ? 'R' + r : '');
+        curvas.push({ len:len, lbl:lbl });
       });
       if(!curvas.length || largoMm <= 0){
         body.innerHTML = '<p class="kmodal-cap">Cargá Largo, Ancho y al menos una curva para ver el esquema.</p>';
@@ -751,6 +742,7 @@
         m2:           parseFloat(el('m2').value) || 0,
         perf:         parseInt(el('perf').value, 10) || 0,
         placas:       parseInt(el('placas').value, 10) || 0,
+        curvado:      kerfResumen(),     // datos de curvado que ingresó el cliente (no metros calculados)
         cantoMts:     parseFloat(el('cantoMts').value) || 0,
         cantoTipo:    el('cantoTipo').value || ''
       };
@@ -792,23 +784,42 @@
     /* -------- Comprobante para el cliente (descargar / email) -------- */
     var ultimoPresu = null;   // último cálculo, para el comprobante
 
-    // Fecha corta local dd/mm/aaaa.
+    // Fecha + hora local dd/mm/aaaa HH:MM (va integrada al comprobante).
     function fechaCorta(d){
       d = d || new Date();
       var z = function(n){ return (n < 10 ? '0' : '') + n; };
-      return z(d.getDate()) + '/' + z(d.getMonth() + 1) + '/' + d.getFullYear();
+      return z(d.getDate()) + '/' + z(d.getMonth() + 1) + '/' + d.getFullYear() +
+        ' ' + z(d.getHours()) + ':' + z(d.getMinutes());
+    }
+
+    // Resumen del curvado con los DATOS QUE INGRESÓ el cliente (no metros calculados):
+    // panel Largo×Ancho, cada curva (radio o 360°) y cantidad de piezas.
+    function kerfResumen(){
+      var largo = parseFloat(el('kAlto').value) || 0;
+      var ancho = parseFloat(el('kLargo').value) || 0;
+      var piezas = parseInt(el('kPiezas').value, 10) || 1;
+      var parts = [];
+      kerfCurvas.forEach(function(c){
+        if(kerfDesarrolloCurva_(c) <= 0) return;
+        parts.push(c.full ? '360°' : ('R' + (parseFloat(c.radio) || 0)));
+      });
+      if(!parts.length || largo <= 0) return '';
+      var s = fmt(largo) + ' × ' + fmt(ancho) + ' cm · ' +
+        parts.length + (parts.length > 1 ? ' curvas' : ' curva') + ' (' + parts.join(', ') + ')';
+      if(piezas > 1) s += ' · ' + piezas + ' piezas';
+      return s;
     }
 
     // Filas de detalle del comprobante (compartidas por descarga y email).
-    // Devuelve [[etiqueta, valor], ...] solo con lo que tenga dato.
+    // SOLO datos que ingresó el cliente — sin metros/cálculos internos.
     function comprobanteFilas(pr){
       var f = [];
       f.push(['Espesor del material', pr.espesorLabel]);
-      f.push(['Metros lineales de corte', fmt(pr.mlTotal) + ' m' + (pr.mlKerf > 0 ? ' (incl. curvado)' : '')]);
-      if(pr.mlKerf > 0) f.push(['— de los cuales, curvado / kerfing', fmt(pr.mlKerf) + ' m']);
+      if(pr.mlBase > 0) f.push(['Metros lineales de corte', fmt(pr.mlBase) + ' m']);
       if(pr.m2 > 0)   f.push(['m² de rebaje / desbaste', fmt(pr.m2)]);
       if(pr.perf > 0) f.push(['Taladros / perforaciones', fmt(pr.perf)]);
       if(pr.placas > 0) f.push(['Cantidad de placas', fmt(pr.placas)]);
+      if(pr.curvado)  f.push(['Curvado / kerfing', pr.curvado]);
       if(pr.cantoMts > 0) f.push(['Canteado', fmt(pr.cantoMts) + ' m' + (pr.cantoTipo ? ' · ' + pr.cantoTipo : '')]);
       return f;
     }
@@ -829,7 +840,8 @@
         'td.v{text-align:right;font-weight:600}.tot{margin-top:8px;padding:14px 16px;background:#faf4ea;' +
         'border:1px solid #eadfca;border-radius:10px}.tot .big{font-size:26px;font-weight:800}' +
         '.tot .usd{color:#6b6257;font-size:14px}.note{color:#6b6257;font-size:11.5px;margin-top:20px;line-height:1.5}' +
-        '.brand{font-weight:800;color:#d98a2b}@media print{body{padding:0}}</style></head><body>' +
+        '.brand{font-weight:800;color:#d98a2b}' +
+        '@page{margin:0}@media print{body{padding:22px}}</style></head><body>' +
         '<h1>Estimación de Costo de Mecanizado</h1>' +
         '<p class="muted"><span class="brand">Rutiá</span> · Fabricación y Mecanizado CNC</p>' +
         '<table>' +
@@ -868,18 +880,23 @@
         proyecto:  ultimoPresu.proyecto,
         ml:        ultimoPresu.mlTotal,
         mlBase:    ultimoPresu.mlBase,
-        mlKerf:    ultimoPresu.mlKerf,
         m2:        ultimoPresu.m2,
         perf:      ultimoPresu.perf,
         placas:    ultimoPresu.placas,
         espesor:   ultimoPresu.espesor,
+        curvado:   ultimoPresu.curvado || '',
         cantoMts:  ultimoPresu.cantoMts,
         cantoTipo: ultimoPresu.cantoTipo
       }, function(r){
         b.disabled = false; b.textContent = '✉ Enviármelo por email';
-        if(r && r.ok){
+        if(r && r.ok && r.sent){
           msg.className = 'ok';
           msg.textContent = '✓ Te lo enviamos' + (r.email ? ' a ' + r.email : '') + '.';
+        } else if(r && r.ok && !r.sent){
+          // El servicio respondió pero no confirmó el envío: el /exec todavía no
+          // tiene la acción 'email' (falta re-desplegar el Apps Script como nueva versión).
+          msg.className = 'err';
+          msg.textContent = 'El envío por email todavía no está disponible. Descargá el comprobante por ahora.';
         } else {
           msg.className = 'err';
           msg.textContent = (r && r.error) || 'No se pudo enviar el email.';
