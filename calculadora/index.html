@@ -474,15 +474,11 @@
     // Constantes de taller (mm), tomadas de la función de Rhino CalculadoraKerfing:
     //   fresa D6 -> ancho de ranura W=6 ; costilla fija 4 ; paso S=W+costilla=10.
     //   comp = compensación por lado ; Rf = radio de fillet de esquinas ; overcut = sobre-corte.
-    // El ranurado se mecaniza DOS veces (corte D6 + extracción D6): por eso ×2.
     var KERF = { W:6, costilla:4, comp:20, Rf:4, overcut:0.5 };
-    // Factor de pasadas del kerfing (antes fijo ×2 = corte + limpieza). Calibrado
-    // contra el presupuesto real 100826SCKPPC (pieza 1000×1000, R200): Rhino da
-    // 39,24 m de recorrido y Vectric 19 min → costo $4.470. Con el ×2 el modelo
-    // daba ~27 min / ~$5.4k (desproporcionado, +21%); con 1,4 cae en ~19 min /
-    // ~$4.3k (≈ real). PALANCA de ajuste: subir = más caro, bajar = más barato.
-    // Recalibrar con más trabajos de kerfing a medida que se coticen.
-    var KERF_FACTOR = 1.4;
+    // NOTA: el frontend manda el recorrido de UNA sola pasada (la "viborita" de
+    // ranuras). Las DOS pasadas (rebaje + limpieza), sus avances distintos y la
+    // calibración de geometría contra Rhino (kerfGeomCal) los resuelve el BACKEND
+    // (Calc_Parametros, en vivo). Acá ya NO hay factor de pasadas ni tiempo.
     // Margen de seguridad de curvado: se agregan 100 mm al desarrollo de CADA curva
     // SOLO para el ranurado (más ranuras = más margen para curvar sin partir). NO se
     // usa para diagramar ni acotar (el esquema muestra el desarrollo real, sin margen).
@@ -531,9 +527,11 @@
       return s;
     }
 
-    // Metros de ranurado facturables (incluye el factor de pasadas KERF_FACTOR) × piezas.
-    // A cada curva se le suma el margen de seguridad KERF_MARGEN_MM (solo para el cálculo).
-    function kerfMetros(){
+    // Metros de ranurado de UNA pasada (la "viborita") × piezas. SIN factor de
+    // pasadas ni tiempo: el backend aplica las 2 pasadas (rebaje+limpieza) a sus
+    // avances y la calibración geométrica. A cada curva se le suma el margen
+    // KERF_MARGEN_MM (más ranuras = margen para curvar sin partir).
+    function kerfMlSingle(){
       var alto = (parseFloat(el('kAlto').value) || 0) * 10;   // cm -> mm (Largo del panel)
       var piezas = parseInt(el('kPiezas').value, 10) || 1;
       var S = KERF.W + KERF.costilla;
@@ -547,7 +545,7 @@
         var Ltraj = N * Lv + (N - 1) * S;                        // viborita completa
         totalMm += Ltraj;
       });
-      return KERF_FACTOR * (totalMm / 1000) * (piezas > 0 ? piezas : 1);
+      return (totalMm / 1000) * (piezas > 0 ? piezas : 1);
     }
 
     function kerfRenderCurvas(){
@@ -726,19 +724,18 @@
       if(!proyecto){ err.textContent = 'Poné el nombre del proyecto (obligatorio).'; res.classList.remove('show'); return; }
       if(!CALC_USER){ salir(); return; }
 
-      // El ranurado (con su doble pasada) se suma a los metros lineales de corte:
-      // el backend cotiza por 'ml', y el kerfing es 'ml' de corte. Todo frontend.
+      // El corte pasante (ml) y el kerfing van SEPARADOS: el backend cronometra el
+      // kerfing distinto (2 pasadas a sus avances + calibración geométrica). El
+      // frontend manda el recorrido de UNA pasada del ranurado (kerfMl).
       var mlBase = parseFloat(el('ml').value) || 0;
-      var mlKerf = kerfMetros();
-      var mlTotal = Math.round((mlBase + mlKerf) * 100) / 100;
+      var kerfMl = Math.round(kerfMlSingle() * 100) / 100;
       var espSel = el('espesor');
       var inputs = {
         proyecto:     proyecto,
         espesorLabel: espSel.options[espSel.selectedIndex].text,
         espesor:      espSel.value,
         mlBase:       mlBase,
-        mlKerf:       Math.round(mlKerf * 100) / 100,
-        mlTotal:      mlTotal,
+        kerfMl:       kerfMl,
         m2:           parseFloat(el('m2').value) || 0,
         perf:         parseInt(el('perf').value, 10) || 0,
         placas:       parseInt(el('placas').value, 10) || 0,
@@ -753,7 +750,8 @@
         action:    'calc',
         usuario:   CALC_USER,
         proyecto:  proyecto,
-        ml:        mlTotal,
+        ml:        mlBase,
+        kerfMl:    kerfMl,
         m2:        inputs.m2,
         perf:      inputs.perf,
         placas:    inputs.placas,
@@ -878,7 +876,8 @@
         action:    'email',
         usuario:   ultimoPresu.usuario,
         proyecto:  ultimoPresu.proyecto,
-        ml:        ultimoPresu.mlTotal,
+        ml:        ultimoPresu.mlBase,
+        kerfMl:    ultimoPresu.kerfMl,
         mlBase:    ultimoPresu.mlBase,
         m2:        ultimoPresu.m2,
         perf:      ultimoPresu.perf,
