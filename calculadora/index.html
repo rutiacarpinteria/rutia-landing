@@ -38,6 +38,10 @@
     }
     input:focus,select:focus{border-color:var(--accent)}
     input.invalid{border-color:#ff8686}
+    /* Sin flechas selectoras: solo tipeo en todos los campos numéricos */
+    input[type=number]{-moz-appearance:textfield}
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
     .section{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.7px;
       color:var(--accent2); margin:0 0 4px}
     .divider{border-top:1px solid var(--line); margin:22px 0 16px}
@@ -101,6 +105,18 @@
     .kcurva-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:2px}
     .kcurva-ttl{font-size:12px; font-weight:700; color:var(--accent2); text-transform:uppercase; letter-spacing:.5px}
     .kcurva .kfield{margin-top:10px}
+    /* Bloque plegable (oculto, se despliega con la flecha) */
+    .kcollap-hd{display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none}
+    .kcollap-hd .section{margin:0}
+    .kcaret{color:var(--accent2); font-size:11px; transition:transform .2s; display:inline-block}
+    .kcollap.open .kcaret{transform:rotate(90deg)}
+    .kcollap-bd{display:none; margin-top:12px}
+    .kcollap.open .kcollap-bd{display:block}
+    /* Descomposición del Ancho (no editable): Sección curva / recta */
+    .ksecs{display:flex; gap:8px; margin-top:6px}
+    .ksecs .kbox{flex:1; background:#0d1016; border:1px dashed var(--line); border-radius:9px; padding:7px 10px}
+    .kbox .kbox-l{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px}
+    .kbox .kbox-v{font-size:15px; color:var(--txt); font-weight:600; margin-top:1px}
     /* ---- Modal del esquema ---- */
     .kmodal{position:fixed; inset:0; z-index:60; background:rgba(8,10,14,.94);
       display:none; flex-direction:column; padding:16px}
@@ -197,29 +213,40 @@
         </div>
 
         <div class="divider"></div>
-        <div class="section">Curvado / Kerfing</div>
-        <div class="row">
-          <div>
-            <label>Largo (cm)</label>
-            <input id="kAlto" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0" oninput="kerfUpdate()">
+        <div class="kcollap" id="kCollap">
+          <div class="kcollap-hd" onclick="kerfToggle()">
+            <span class="kcaret">▶</span>
+            <div class="section">Curvado / Kerfing</div>
           </div>
-          <div>
-            <label>Ancho (cm)</label>
-            <input id="kLargo" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0" oninput="kerfUpdate()">
+          <div class="kcollap-bd">
+            <div class="row">
+              <div>
+                <label>Largo (cm)</label>
+                <input id="kAlto" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0" oninput="kerfUpdate()">
+              </div>
+              <div>
+                <label>Ancho (cm)</label>
+                <input id="kLargo" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0" oninput="kerfUpdate()">
+                <div class="ksecs">
+                  <div class="kbox"><div class="kbox-l">Sección curva</div><div class="kbox-v" id="kSecCurva">—</div></div>
+                  <div class="kbox"><div class="kbox-l">Sección recta</div><div class="kbox-v" id="kSecRecta">—</div></div>
+                </div>
+              </div>
+            </div>
+            <label>Curvas de la pieza</label>
+            <div id="kCurvas"></div>
+            <button type="button" class="kadd" onclick="kerfAddCurva()">+ Agregar curva</button>
+            <div class="row" style="margin-top:14px">
+              <div>
+                <label>Cantidad de piezas iguales</label>
+                <input id="kPiezas" type="number" min="1" step="1" inputmode="numeric" placeholder="1" oninput="kerfUpdate()">
+              </div>
+              <div></div>
+            </div>
+            <div class="kwarn" id="kWarn" style="display:none"></div>
+            <button type="button" class="kbtn" onclick="kerfOpenModal()">Ver esquema de mecanizado</button>
           </div>
         </div>
-        <label>Curvas de la pieza</label>
-        <div id="kCurvas"></div>
-        <button type="button" class="kadd" onclick="kerfAddCurva()">+ Agregar curva</button>
-        <div class="row" style="margin-top:14px">
-          <div>
-            <label>Cantidad de piezas iguales</label>
-            <input id="kPiezas" type="number" min="1" step="1" inputmode="numeric" placeholder="1" oninput="kerfUpdate()">
-          </div>
-          <div></div>
-        </div>
-        <div class="kwarn" id="kWarn" style="display:none"></div>
-        <button type="button" class="kbtn" onclick="kerfOpenModal()">Ver esquema</button>
 
         <div class="divider"></div>
         <div class="section">Canteado</div>
@@ -428,19 +455,30 @@
     //   comp = compensación por lado ; Rf = radio de fillet de esquinas ; overcut = sobre-corte.
     // El ranurado se mecaniza DOS veces (corte D6 + extracción D6): por eso ×2.
     var KERF = { W:6, costilla:4, comp:20, Rf:4, overcut:0.5 };
-    var kerfCurvas = [];   // [{radio(cm), ang:90|180|360, cant}]
+    // Factor de pasadas del kerfing (antes fijo ×2 = corte + limpieza). Calibrado
+    // contra el presupuesto real 100826SCKPPC (pieza 1000×1000, R200): Rhino da
+    // 39,24 m de recorrido y Vectric 19 min → costo $4.470. Con el ×2 el modelo
+    // daba ~27 min / ~$5.4k (desproporcionado, +21%); con 1,4 cae en ~19 min /
+    // ~$4.3k (≈ real). PALANCA de ajuste: subir = más caro, bajar = más barato.
+    // Recalibrar con más trabajos de kerfing a medida que se coticen.
+    var KERF_FACTOR = 1.4;
+    var kerfCurvas = [];   // [{radio(cm), ang:(90|180|360|nº), custom:bool}]
 
     function kerfInit(){
-      kerfCurvas = [{ radio:'', ang:90, cant:1 }];
+      kerfCurvas = [{ radio:'', ang:90, custom:false }];
       el('kAlto').value = ''; el('kLargo').value = ''; el('kPiezas').value = '';
       el('kWarn').style.display = 'none';
+      el('kCollap').classList.remove('open');   // arranca oculto (se despliega con la flecha)
       kerfCloseModal();
       kerfRenderCurvas();
       kerfUpdate();
     }
 
+    // Despliega / oculta el bloque de kerfing.
+    function kerfToggle(){ el('kCollap').classList.toggle('open'); }
+
     function kerfAddCurva(){
-      kerfCurvas.push({ radio:'', ang:90, cant:1 });
+      kerfCurvas.push({ radio:'', ang:90, custom:false });
       kerfRenderCurvas();
       kerfUpdate();
     }
@@ -451,14 +489,13 @@
       var s = 0;
       kerfCurvas.forEach(function(c){
         var r = (parseFloat(c.radio) || 0) * 10;        // cm -> mm
-        var cant = parseInt(c.cant, 10) || 0;
         var ang = Number(c.ang) || 0;
-        if(r > 0 && ang && cant > 0) s += r * (ang * Math.PI / 180) * cant;
+        if(r > 0 && ang) s += r * (ang * Math.PI / 180);
       });
       return s;
     }
 
-    // Metros de ranurado facturables (YA ×2 por la doble pasada) × piezas.
+    // Metros de ranurado facturables (incluye el factor de pasadas KERF_FACTOR) × piezas.
     function kerfMetros(){
       var alto = (parseFloat(el('kAlto').value) || 0) * 10;   // cm -> mm
       var piezas = parseInt(el('kPiezas').value, 10) || 1;
@@ -467,15 +504,14 @@
       var totalMm = 0;
       kerfCurvas.forEach(function(c){
         var r = (parseFloat(c.radio) || 0) * 10;
-        var cant = parseInt(c.cant, 10) || 0;
         var ang = Number(c.ang) || 0;
-        if(r <= 0 || !ang || cant <= 0 || alto <= 0) return;
+        if(r <= 0 || !ang || alto <= 0) return;
         var desarrollo = r * (ang * Math.PI / 180);
         var N = Math.ceil((desarrollo + 2 * KERF.comp) / S) + 1;  // nº de ranuras
         var Ltraj = N * Lv + (N - 1) * S;                        // viborita completa
-        totalMm += Ltraj * cant;
+        totalMm += Ltraj;
       });
-      return 2 * (totalMm / 1000) * (piezas > 0 ? piezas : 1);
+      return KERF_FACTOR * (totalMm / 1000) * (piezas > 0 ? piezas : 1);
     }
 
     function kerfRenderCurvas(){
@@ -491,7 +527,7 @@
         del.textContent = '🗑'; del.title = 'Quitar curva';
         del.onclick = function(){
           kerfCurvas.splice(i, 1);
-          if(!kerfCurvas.length) kerfCurvas.push({ radio:'', ang:90, cant:1 });
+          if(!kerfCurvas.length) kerfCurvas.push({ radio:'', ang:90, custom:false });
           kerfRenderCurvas(); kerfUpdate();
         };
         head.appendChild(del); card.appendChild(head);
@@ -499,21 +535,31 @@
         // Bloque Radio (separado)
         card.appendChild(kfield('Radio (cm)', kinput(c.radio, '0.1', 'decimal', false, function(v){ c.radio = v; kerfUpdate(); })));
 
-        // Bloque Ángulo (separado)
+        // Bloque Ángulo (separado): presets 90/180/360 + Personalizar
         var af = document.createElement('div'); af.className = 'kfield';
         var al = document.createElement('label'); al.textContent = 'Ángulo'; af.appendChild(al);
         var angs = document.createElement('div'); angs.className = 'angs';
         [90,180,360].forEach(function(val){
           var b = document.createElement('button'); b.type = 'button';
-          b.className = 'ang' + (Number(c.ang) === val ? ' sel' : '');
+          b.className = 'ang' + (!c.custom && Number(c.ang) === val ? ' sel' : '');
           b.textContent = val + '°';
-          b.onclick = function(){ c.ang = val; kerfRenderCurvas(); kerfUpdate(); };
+          b.onclick = function(){ c.custom = false; c.ang = val; kerfRenderCurvas(); kerfUpdate(); };
           angs.appendChild(b);
         });
+        var bp = document.createElement('button'); bp.type = 'button';
+        bp.className = 'ang' + (c.custom ? ' sel' : '');
+        bp.textContent = 'Personalizar';
+        bp.onclick = function(){
+          if(!c.custom){ c.custom = true; c.ang = ''; }   // pasar a modo libre, campo vacío
+          kerfRenderCurvas(); kerfUpdate();
+        };
+        angs.appendChild(bp);
         af.appendChild(angs); card.appendChild(af);
 
-        // Bloque Cantidad (separado)
-        card.appendChild(kfield('Cantidad', kinput(c.cant, '1', 'numeric', true, function(v){ c.cant = v; kerfUpdate(); })));
+        // Si es personalizado, campo de ángulo libre (grados)
+        if(c.custom){
+          card.appendChild(kfield('Ángulo (°)', kinput(c.ang, '1', 'numeric', false, function(v){ c.ang = v; kerfUpdate(); })));
+        }
 
         box.appendChild(card);
       });
@@ -533,10 +579,18 @@
       return inp;
     }
 
-    // Recalcula solo el aviso de validación (el esquema se ve en el modal, bajo demanda).
+    // Formatea cm con coma decimal (o "—" si no hay dato).
+    function kerfCm(mm, hay){ return hay ? (mm / 10).toFixed(1).replace('.', ',') + ' cm' : '—'; }
+
+    // Recalcula la descomposición del Ancho (Sección curva / recta) + el aviso de validación.
     function kerfUpdate(){
       var anchoMm = (parseFloat(el('kLargo').value) || 0) * 10;   // kLargo = Ancho
       var desMm = kerfDesarrolloMm();
+
+      // Sección curva = desarrollo de los radios ; Sección recta = Ancho − curva (no editables)
+      el('kSecCurva').textContent = kerfCm(desMm, desMm > 0);
+      el('kSecRecta').textContent = kerfCm(Math.max(0, anchoMm - desMm), anchoMm > 0);
+
       var warn = el('kWarn');
       if(anchoMm > 0 && desMm > anchoMm + 0.5){
         warn.style.display = '';
@@ -561,9 +615,8 @@
 
       var curvas = [];
       kerfCurvas.forEach(function(c){
-        var r = parseFloat(c.radio) || 0, cant = parseInt(c.cant, 10) || 0, ang = Number(c.ang) || 0;
-        if(r > 0 && ang && cant > 0)
-          for(var k = 0; k < cant; k++) curvas.push({ r:r, ang:ang, len:(r * 10) * (ang * Math.PI / 180) });
+        var r = parseFloat(c.radio) || 0, ang = Number(c.ang) || 0;
+        if(r > 0 && ang) curvas.push({ r:r, ang:ang, len:(r * 10) * (ang * Math.PI / 180) });
       });
       if(!curvas.length || largoMm <= 0){
         body.innerHTML = '<p class="kmodal-cap">Cargá Largo, Ancho y al menos una curva para ver el esquema.</p>';
@@ -583,10 +636,9 @@
 
       body.innerHTML =
         '<div class="kviews">' +
-          '<div class="kview"><div class="kview-ttl">Vista frontal · desarrollo plano</div>' + kerfSvgFrontal_(seq, anchoTot, largoMm) + '</div>' +
-          '<div class="kview"><div class="kview-ttl">Vista de planta · pieza curvada (radio y ángulo)</div>' + kerfSvgPlanta_(seq) + '</div>' +
+          '<div class="kview">' + kerfSvgFrontal_(seq, anchoTot, largoMm) + '</div>' +
         '</div>';
-      capEl.textContent = 'Diagrama orientativo · alto ' + (largoMm / 10) + ' cm · zonas rayadas = ranurado';
+      capEl.textContent = 'Diagrama orientativo';
     }
 
     // VISTA FRONTAL: panel plano (Ancho × Largo) con las zonas de ranurado rayadas, acotado.
@@ -596,27 +648,20 @@
       var mL = 78, mR = 34, mT = 26, mB = 58;
       var VBW = Wp + mL + mR, VBH = Hp + mT + mB;
       var sx = Wp / anchoTot;                                       // unidades por mm
-      var S = KERF.W + KERF.costilla;                              // paso entre ranuras (mm)
       var svg = '<svg viewBox="0 0 ' + VBW.toFixed(0) + ' ' + VBH.toFixed(0) + '" xmlns="http://www.w3.org/2000/svg">';
-      svg += '<defs><pattern id="khB" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
+      // Hatch: líneas HORIZONTALES simulando el ranurado.
+      svg += '<defs><pattern id="khB" width="7" height="7" patternUnits="userSpaceOnUse">'
            + '<rect width="7" height="7" fill="#141821"/>'
-           + '<line x1="0" y1="0" x2="0" y2="7" stroke="#d98a2b" stroke-width="1.4"/></pattern></defs>';
+           + '<line x1="0" y1="3.5" x2="7" y2="3.5" stroke="#d98a2b" stroke-width="1.4"/></pattern></defs>';
       var x = mL;
       seq.forEach(function(z){
         var w = z.len * sx;
         if(z.tipo === 'curva'){
-          svg += '<rect x="' + x.toFixed(1) + '" y="' + mT + '" width="' + w.toFixed(1) + '" height="' + Hp.toFixed(1) + '" fill="url(#khB)" stroke="#f0a94a" stroke-width="1.2"/>';
-          if(S * sx > 5){
-            var n = Math.floor(z.len / S);
-            for(var j = 1; j <= n; j++){
-              var xl = x + j * S * sx;
-              if(xl < x + w - 0.5)
-                svg += '<line x1="' + xl.toFixed(1) + '" y1="' + mT + '" x2="' + xl.toFixed(1) + '" y2="' + (mT + Hp).toFixed(1) + '" stroke="#d98a2b" stroke-width="0.8" opacity="0.7"/>';
-            }
-          }
+          // Zona de ranurado: solo relleno rayado, sin borde (sin la línea gruesa a la izquierda).
+          svg += '<rect x="' + x.toFixed(1) + '" y="' + mT + '" width="' + w.toFixed(1) + '" height="' + Hp.toFixed(1) + '" fill="url(#khB)"/>';
           if(w > 46) svg += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (mT + 15) + '" fill="#e8eaed" font-size="12" text-anchor="middle">R' + z.r + '·' + z.ang + '°</text>';
         } else {
-          svg += '<rect x="' + x.toFixed(1) + '" y="' + mT + '" width="' + w.toFixed(1) + '" height="' + Hp.toFixed(1) + '" fill="#161b23" stroke="#2b313c" stroke-width="1"/>';
+          svg += '<rect x="' + x.toFixed(1) + '" y="' + mT + '" width="' + w.toFixed(1) + '" height="' + Hp.toFixed(1) + '" fill="#161b23"/>';
         }
         x += w;
       });
@@ -631,57 +676,6 @@
       svg += '<line x1="' + (xL - 5) + '" y1="' + mT + '" x2="' + (xL + 5) + '" y2="' + mT + '" stroke="#5b6472" stroke-width="1"/>';
       svg += '<line x1="' + (xL - 5) + '" y1="' + (mT + Hp).toFixed(1) + '" x2="' + (xL + 5) + '" y2="' + (mT + Hp).toFixed(1) + '" stroke="#5b6472" stroke-width="1"/>';
       svg += '<text x="' + (xL - 10) + '" y="' + yc.toFixed(1) + '" fill="#9aa4b2" font-size="13" text-anchor="middle" transform="rotate(-90 ' + (xL - 10) + ' ' + yc.toFixed(1) + ')">Largo ' + (largoMm / 10) + ' cm</text>';
-      svg += '</svg>';
-      return svg;
-    }
-
-    // VISTA DE PLANTA: la pieza YA curvada, trazando rectas + arcos reales (giro a la
-    // izquierda). Cada arco lleva su línea de radio (punteada al centro) y rótulo R·ángulo.
-    function kerfSvgPlanta_(seq){
-      var pos = { x:0, y:0 }, th = 0;                 // coords matemáticas (y hacia arriba)
-      var pts = [{ x:0, y:0 }], arcs = [];
-      seq.forEach(function(z){
-        if(z.tipo === 'plano'){
-          var nx = pos.x + z.len * Math.cos(th), ny = pos.y + z.len * Math.sin(th);
-          pts.push({ x:nx, y:ny }); pos = { x:nx, y:ny };
-        } else {
-          var r = z.r * 10, phi = z.ang * Math.PI / 180;
-          var cx = pos.x + r * Math.cos(th + Math.PI / 2), cy = pos.y + r * Math.sin(th + Math.PI / 2);
-          var vx = pos.x - cx, vy = pos.y - cy;
-          var steps = Math.max(8, Math.round(z.ang / 5));
-          for(var s = 1; s <= steps; s++){
-            var a = phi * s / steps, ca = Math.cos(a), sa = Math.sin(a);
-            pts.push({ x: cx + vx * ca - vy * sa, y: cy + vx * sa + vy * ca });
-          }
-          var caF = Math.cos(phi), saF = Math.sin(phi);
-          pos = { x: cx + vx * caF - vy * saF, y: cy + vx * saF + vy * caF };
-          var am = phi / 2, cam = Math.cos(am), sam = Math.sin(am);
-          arcs.push({ cx:cx, cy:cy, mx: cx + vx * cam - vy * sam, my: cy + vx * sam + vy * cam, r_cm:z.r, ang:z.ang });
-          th += phi;
-        }
-      });
-      // bbox incluyendo los centros (para que la línea de radio quede a la vista)
-      var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
-      function ext(px, py){ if(px < minX) minX = px; if(px > maxX) maxX = px; if(py < minY) minY = py; if(py > maxY) maxY = py; }
-      pts.forEach(function(p){ ext(p.x, p.y); });
-      arcs.forEach(function(a){ ext(a.cx, a.cy); });
-      var wMm = Math.max(1, maxX - minX), hMm = Math.max(1, maxY - minY);
-      var BASE = 520, k = BASE / Math.max(wMm, hMm), m = 46;
-      var VBW = wMm * k + 2 * m, VBH = hMm * k + 2 * m;
-      function MX(x){ return m + (x - minX) * k; }
-      function MY(y){ return m + (maxY - y) * k; }     // flip Y (pantalla y hacia abajo)
-      var svg = '<svg viewBox="0 0 ' + VBW.toFixed(0) + ' ' + VBH.toFixed(0) + '" xmlns="http://www.w3.org/2000/svg">';
-      arcs.forEach(function(a){                          // radios punteados + centro
-        svg += '<line x1="' + MX(a.cx).toFixed(1) + '" y1="' + MY(a.cy).toFixed(1) + '" x2="' + MX(a.mx).toFixed(1) + '" y2="' + MY(a.my).toFixed(1) + '" stroke="#5b6472" stroke-width="1" stroke-dasharray="4 3"/>';
-        svg += '<circle cx="' + MX(a.cx).toFixed(1) + '" cy="' + MY(a.cy).toFixed(1) + '" r="2.5" fill="#5b6472"/>';
-      });
-      var d = 'M ' + MX(pts[0].x).toFixed(1) + ' ' + MY(pts[0].y).toFixed(1);
-      for(var i = 1; i < pts.length; i++) d += ' L ' + MX(pts[i].x).toFixed(1) + ' ' + MY(pts[i].y).toFixed(1);
-      svg += '<path d="' + d + '" fill="none" stroke="#f0a94a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>';
-      arcs.forEach(function(a){                          // rótulo R·ángulo a mitad del radio
-        var lx = MX((a.cx + a.mx) / 2).toFixed(1), ly = MY((a.cy + a.my) / 2).toFixed(1);
-        svg += '<text x="' + lx + '" y="' + ly + '" fill="#e8eaed" font-size="13" text-anchor="middle">R' + a.r_cm + '·' + a.ang + '°</text>';
-      });
       svg += '</svg>';
       return svg;
     }
