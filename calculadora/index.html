@@ -71,6 +71,7 @@
     .price{font-size:34px; font-weight:800; letter-spacing:.3px}
     .price .cur{font-size:16px; color:var(--muted); font-weight:600}
     .usd{color:var(--muted); font-size:15px; margin-top:4px}
+    .matnote{color:var(--accent2); font-size:12px; font-weight:700; letter-spacing:.4px; margin-top:10px; text-transform:uppercase}
     .recibo{margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
     .recibo .kbtn{margin:0}
     .recibo .kbtn:disabled{opacity:.55; cursor:default; border-color:var(--line); color:var(--muted)}
@@ -280,6 +281,7 @@
         <div class="result" id="result">
           <div class="price"><span class="cur">$</span> <span id="uyu">—</span> <span class="cur">UYU</span></div>
           <div class="usd">≈ USD <span id="usd">—</span></div>
+          <div class="matnote">Materiales no incluidos</div>
           <div class="recibo">
             <button type="button" class="kbtn" onclick="descargarComprobante()">⬇ Descargar comprobante</button>
             <button type="button" class="kbtn" id="btnEmail" disabled title="Envío por email no disponible por ahora">✉ Email (no disponible)</button>
@@ -841,7 +843,9 @@
         'td{padding:8px 4px;border-bottom:1px solid #eee;font-size:14px;vertical-align:top}' +
         'td.v{text-align:right;font-weight:600}.tot{margin-top:8px;padding:14px 16px;background:#faf4ea;' +
         'border:1px solid #eadfca;border-radius:10px}.tot .big{font-size:26px;font-weight:800}' +
-        '.tot .usd{color:#6b6257;font-size:14px}.note{color:#6b6257;font-size:11.5px;margin-top:20px;line-height:1.5}' +
+        '.tot .usd{color:#6b6257;font-size:14px}' +
+        '.tot .matnote{color:#d98a2b;font-size:11.5px;font-weight:700;letter-spacing:.4px;margin-top:8px;text-transform:uppercase}' +
+        '.note{color:#6b6257;font-size:11.5px;margin-top:20px;line-height:1.5}' +
         '.brand{font-weight:800;color:#d98a2b}' +
         '@page{margin:0}@media print{body{padding:22px}}</style></head><body>' +
         '<h1>Estimación de Costo de Mecanizado</h1>' +
@@ -852,7 +856,8 @@
         '<tr><td>Fecha</td><td class="v">' + fechaCorta(pr.fecha) + '</td></tr>' +
         filas + '</table>' +
         '<div class="tot"><div class="big">$ ' + fmt(pr.uyu) + ' UYU</div>' +
-        '<div class="usd">≈ USD ' + fmt(pr.usd) + '</div></div>' +
+        '<div class="usd">≈ USD ' + fmt(pr.usd) + '</div>' +
+        '<div class="matnote">Materiales no incluidos</div></div>' +
         '<p class="note">Estimación rápida orientativa, sujeta a confirmación. ' +
         'No constituye un presupuesto cerrado.</p></body></html>';
     }
