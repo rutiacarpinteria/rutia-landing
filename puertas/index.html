@@ -88,6 +88,31 @@
     .padd{width:auto; margin:12px 0 0; padding:10px 14px; font-size:14px; color:var(--muted);
       background:transparent; border:1px dashed var(--line); border-radius:9px; font-weight:600; cursor:pointer}
     .padd:hover{border-color:var(--accent); color:var(--txt)}
+    /* Resaltado "milímetros" + definiciones chicas */
+    .mm{display:inline-block; margin:2px 0 10px; padding:6px 12px;
+      background:linear-gradient(180deg,var(--accent2),var(--accent)); color:#1a1206;
+      border-radius:8px; font-size:13px; font-weight:800; letter-spacing:.6px; text-transform:uppercase}
+    .defs{font-size:11px; color:var(--muted); line-height:1.7; margin:0 0 12px}
+    .defs div b{color:var(--txt); font-weight:600}
+    /* Cuadro de ingreso de puerta */
+    .pform{border:1px solid var(--line); border-radius:10px; padding:14px; background:#141821; margin-top:4px}
+    .pblock-ttl{font-size:11.5px; font-weight:700; color:var(--accent2); text-transform:uppercase;
+      letter-spacing:.5px; margin:14px 0 6px}
+    .pblock-ttl:first-child{margin-top:0}
+    .pblock-note{color:var(--muted); font-weight:600; text-transform:none; letter-spacing:0}
+    .pform label{margin:8px 0 4px}
+    /* Tabla de puertas ingresadas */
+    .ptable{width:100%; border-collapse:collapse; margin-top:14px}
+    .ptable th{font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted);
+      text-align:left; padding:6px 6px; border-bottom:1px solid var(--line)}
+    .ptable td{font-size:13px; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top}
+    .ptable td.r,.ptable th.r{text-align:right}
+    .ptable .sub{font-size:11px; color:var(--muted); margin-top:2px}
+    .trash{width:auto; margin:0; padding:5px 9px; color:var(--muted); background:transparent;
+      border:1px solid var(--line); border-radius:7px; font-weight:600; cursor:pointer; font-size:13px}
+    .trash:hover{border-color:#ff8686; color:var(--txt)}
+    .tempty{font-size:12.5px; color:var(--muted); text-align:center; padding:14px;
+      border:1px dashed var(--line); border-radius:9px; margin-top:12px}
     .custom{display:none; margin-top:8px}
     .custom.show{display:flex}
     .result{
@@ -169,12 +194,50 @@
         </div>
 
         <div class="divider"></div>
-        <div class="section">Puertas <span style="color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0">· medidas en mm</span></div>
-        <p class="hint">Agregá tantas puertas como necesites. <b>Calle</b> = distancia del
-          borde al inicio de la moldura. <b>Rebaje</b> = ancho del moldurado. <b>Prof.</b> =
-          profundidad del rebaje.</p>
-        <div id="puertas"></div>
-        <button type="button" class="padd" onclick="addPuerta()">+ Agregar puerta</button>
+        <div class="section">Puertas</div>
+        <div class="mm">Medidas en milímetros</div>
+        <div class="defs">
+          <div>Agregá tantas puertas como necesites.</div>
+          <div><b>Calle</b>: distancia del borde al inicio de la moldura.</div>
+          <div><b>Rebaje</b>: ancho del moldurado.</div>
+          <div><b>Prof.</b>: profundidad del rebaje.</div>
+        </div>
+
+        <!-- Cuadro de ingreso (2 bloques) -->
+        <div class="pform">
+          <div class="pblock-ttl">Medida de la puerta</div>
+          <div class="pgrid">
+            <div><label>Ref (opcional)</label>
+              <input id="fRef" type="text" placeholder="Baño 1"></div>
+            <div><label>Cantidad</label>
+              <input id="fCant" type="number" min="1" step="1" inputmode="numeric" placeholder="1"></div>
+            <div></div>
+            <div><label>Alto</label>
+              <input id="fAlto" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0"></div>
+            <div><label>Ancho</label>
+              <input id="fAncho" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0"></div>
+            <div></div>
+          </div>
+
+          <div class="pblock-ttl">Moldurado <span class="pblock-note">· igual para todas (editable)</span></div>
+          <div class="pgrid">
+            <div><label>Ancho calle</label>
+              <input id="fCalle" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0"></div>
+            <div><label>Ancho rebaje</label>
+              <input id="fRebaje" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0"></div>
+            <div><label>Prof. rebaje</label>
+              <input id="fProf" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0"></div>
+          </div>
+
+          <label>Notas (tratamiento especial, etc.)</label>
+          <textarea id="fNotas" rows="1"></textarea>
+
+          <button type="button" class="padd" onclick="ingresarPuerta()">+ Ingresar puerta</button>
+          <div class="err" id="pErr"></div>
+        </div>
+
+        <!-- Tabla de puertas ingresadas -->
+        <div id="tablaPuertas"></div>
 
         <div class="btns">
           <button id="btnFin" type="button" onclick="finalizar()">Finalizar pedido</button>
@@ -207,7 +270,7 @@
     var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     var PED_USER = null;
     var placasCfg = { gap: 6.1, margen: 15 };
-    var puertasRows = [];   // modelo: [{ref,alto,ancho,calle,rebaje,prof,cant,notas}]
+    var piezas = [];        // puertas ingresadas: [{ref,cant,alto,ancho,calle,rebaje,prof,notas}]
     var ultimoPedido = null;
 
     function el(id){ return document.getElementById(id); }
@@ -315,7 +378,7 @@
       el('pedidoScreen').style.display = '';
       el('userInfo').innerHTML = 'Hola, <b>' + nombre + '</b>';
       cargarPlacas();
-      if(!puertasRows.length){ puertasRows = [nuevaPuerta()]; renderPuertas(); }
+      renderTabla();
       el('obra').focus();
     }
 
@@ -347,66 +410,71 @@
       el('customPlaca').classList.toggle('show', el('placa').value === '__custom__');
     }
 
-    function nuevaPuerta(){ return { ref:'', alto:'', ancho:'', calle:'', rebaje:'', prof:'', cant:'1', notas:'' }; }
-    function addPuerta(){ puertasRows.push(nuevaPuerta()); renderPuertas(); }
+    function escapeHtml(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    function renderPuertas(){
-      var box = el('puertas'); box.innerHTML = '';
-      puertasRows.forEach(function(p, i){
-        var card = document.createElement('div'); card.className = 'pcard';
-        var hd = document.createElement('div'); hd.className = 'pcard-hd';
-        var ttl = document.createElement('span'); ttl.className = 'pcard-ttl';
-        ttl.textContent = 'Puerta ' + (i + 1); hd.appendChild(ttl);
-        var del = document.createElement('button'); del.type = 'button'; del.className = 'pdel';
-        del.textContent = '🗑 Quitar';
-        del.onclick = function(){
-          puertasRows.splice(i, 1);
-          if(!puertasRows.length) puertasRows.push(nuevaPuerta());
-          renderPuertas();
-        };
-        hd.appendChild(del); card.appendChild(hd);
+    // "Ingresar puerta": toma los valores del cuadro, agrega la fila a la tabla y
+    // limpia SOLO los datos de la puerta. El moldurado (calle/rebaje/prof) queda
+    // cargado porque es el mismo para todas (se puede cambiar antes de la próxima).
+    function ingresarPuerta(){
+      var err = el('pErr'); err.textContent = '';
+      var alto = parseFloat(el('fAlto').value) || 0, ancho = parseFloat(el('fAncho').value) || 0;
+      el('fAlto').classList.toggle('invalid', !(alto > 0));
+      el('fAncho').classList.toggle('invalid', !(ancho > 0));
+      if(alto <= 0 || ancho <= 0){ err.textContent = 'Ingresá alto y ancho de la puerta.'; return; }
 
-        var grid = document.createElement('div'); grid.className = 'pgrid';
-        grid.appendChild(field(p, 'ref',    'Ref (opcional)', 'text',    'Baño 1'));
-        grid.appendChild(field(p, 'cant',   'Cantidad',       'int',     '1'));
-        grid.appendChild(spacer());
-        grid.appendChild(field(p, 'alto',   'Alto',           'num',     '0'));
-        grid.appendChild(field(p, 'ancho',  'Ancho',          'num',     '0'));
-        grid.appendChild(field(p, 'calle',  'Ancho calle',    'num',     '0'));
-        grid.appendChild(field(p, 'rebaje', 'Ancho rebaje',   'num',     '0'));
-        grid.appendChild(field(p, 'prof',   'Prof. rebaje',   'num',     '0'));
-        grid.appendChild(spacer());
-        var nf = document.createElement('div'); nf.className = 'pfull';
-        var nl = document.createElement('label'); nl.textContent = 'Notas (tratamiento especial, etc.)';
-        var nt = document.createElement('textarea'); nt.rows = 1; nt.value = p.notas;
-        nt.oninput = function(){ p.notas = nt.value; };
-        nf.appendChild(nl); nf.appendChild(nt); grid.appendChild(nf);
-
-        card.appendChild(grid);
-        box.appendChild(card);
+      piezas.push({
+        ref:    sane(el('fRef').value),
+        cant:   Math.max(1, parseInt(el('fCant').value, 10) || 1),
+        alto:   alto, ancho: ancho,
+        calle:  parseFloat(el('fCalle').value)  || 0,
+        rebaje: parseFloat(el('fRebaje').value) || 0,
+        prof:   parseFloat(el('fProf').value)   || 0,
+        notas:  sane(el('fNotas').value)
       });
+
+      // Limpio solo los datos de la puerta; el moldurado persiste.
+      ['fRef','fCant','fAlto','fAncho','fNotas'].forEach(function(id){ el(id).value = ''; });
+      el('fAlto').classList.remove('invalid'); el('fAncho').classList.remove('invalid');
+      renderTabla();
+      el('fRef').focus();
     }
-    function spacer(){ var d = document.createElement('div'); return d; }
-    function field(p, key, labelTxt, kind, ph){
-      var d = document.createElement('div');
-      var l = document.createElement('label'); l.textContent = labelTxt; d.appendChild(l);
-      var inp = document.createElement('input');
-      inp.value = (p[key] == null ? '' : p[key]);
-      inp.placeholder = ph || '';
-      if(kind === 'text'){ inp.type = 'text'; }
-      else { inp.type = 'number'; inp.min = (kind === 'int' ? '1' : '0');
-        inp.step = (kind === 'int' ? '1' : '0.1'); inp.setAttribute('inputmode', kind === 'int' ? 'numeric' : 'decimal'); }
-      inp.oninput = function(){ p[key] = inp.value; };
-      d.appendChild(inp); return d;
+
+    function quitarPieza(i){ piezas.splice(i, 1); renderTabla(); }
+
+    function renderTabla(){
+      var box = el('tablaPuertas');
+      if(!piezas.length){
+        box.innerHTML = '<div class="tempty">Todavía no ingresaste puertas. ' +
+          'Completá los datos y tocá “Ingresar puerta”.</div>';
+        return;
+      }
+      var rows = piezas.map(function(p, i){
+        var mold = 'calle ' + p.calle + ' · rebaje ' + p.rebaje + ' · prof ' + p.prof;
+        var notas = p.notas ? '<div class="sub">📝 ' + escapeHtml(p.notas) + '</div>' : '';
+        return '<tr>' +
+          '<td>' + (i + 1) + '. ' + (escapeHtml(p.ref) || '<span style="color:var(--muted)">—</span>') +
+            '<div class="sub">' + mold + '</div>' + notas + '</td>' +
+          '<td class="r">' + p.cant + '</td>' +
+          '<td class="r">' + p.alto + ' × ' + p.ancho + '</td>' +
+          '<td class="r"><button type="button" class="trash" data-i="' + i + '">🗑</button></td>' +
+          '</tr>';
+      }).join('');
+      box.innerHTML = '<table class="ptable">' +
+        '<tr><th>Puerta</th><th class="r">Cant.</th><th class="r">Alto × Ancho</th><th class="r"></th></tr>' +
+        rows + '</table>';
+      Array.prototype.forEach.call(box.querySelectorAll('.trash'), function(b){
+        b.onclick = function(){ quitarPieza(parseInt(b.getAttribute('data-i'), 10)); };
+      });
     }
 
     function borrar(){
       el('obra').value = ''; el('tel').value = '';
       if(el('placa').options.length) el('placa').selectedIndex = 0;
       placaChange();
-      puertasRows = [nuevaPuerta()]; renderPuertas();
+      ['fRef','fCant','fAlto','fAncho','fCalle','fRebaje','fProf','fNotas'].forEach(function(id){ el(id).value = ''; });
+      piezas = []; renderTabla();
       el('result').classList.remove('show');
-      el('err').textContent = ''; el('rMsg').textContent = '';
+      el('err').textContent = ''; el('rMsg').textContent = ''; el('pErr').textContent = '';
       ultimoPedido = null;
       el('obra').focus();
     }
@@ -418,6 +486,9 @@
       var btn = el('btnFin'), err = el('err'), res = el('result');
       err.textContent = ''; el('rMsg').textContent = '';
 
+      // Si quedó una puerta a medio cargar en el cuadro, la ingreso antes de enviar.
+      if((parseFloat(el('fAlto').value) || 0) > 0 && (parseFloat(el('fAncho').value) || 0) > 0){ ingresarPuerta(); }
+
       var placaVal = el('placa').value;
       if(!placaVal){ err.textContent = 'Elegí una placa.'; return; }
       var placaW = '', placaH = '';
@@ -427,19 +498,12 @@
         if(placaW <= 0 || placaH <= 0){ err.textContent = 'Ingresá las medidas de la placa a medida.'; return; }
       }
 
-      // Armo el payload: ref|ancho|alto|calle|rebaje|prof|cant|notas  (una por renglón)
-      var lineas = [], validas = 0;
-      puertasRows.forEach(function(p){
-        var alto = parseFloat(p.alto) || 0, ancho = parseFloat(p.ancho) || 0;
-        if(alto <= 0 || ancho <= 0) return;
-        validas++;
-        lineas.push([
-          sane(p.ref), ancho, alto,
-          parseFloat(p.calle) || 0, parseFloat(p.rebaje) || 0, parseFloat(p.prof) || 0,
-          Math.max(1, parseInt(p.cant, 10) || 1), sane(p.notas)
-        ].join('|'));
+      if(!piezas.length){ err.textContent = 'Cargá al menos una puerta (tocá “Ingresar puerta”).'; res.classList.remove('show'); return; }
+      // Payload: ref|ancho|alto|calle|rebaje|prof|cant|notas (una puerta por renglón)
+      var lineas = piezas.map(function(p){
+        return [ sane(p.ref), p.ancho, p.alto, p.calle || 0, p.rebaje || 0, p.prof || 0,
+          Math.max(1, p.cant || 1), sane(p.notas) ].join('|');
       });
-      if(!validas){ err.textContent = 'Cargá al menos una puerta con alto y ancho.'; return; }
 
       var params = {
         action: 'pedido', usuario: PED_USER,
@@ -465,7 +529,7 @@
         if(r.avisos && r.avisos.length){ err.textContent = 'Avisos: ' + r.avisos.join(' '); }
         ultimoPedido = { usuario: PED_USER, obra: params.obra, tel: params.tel, fecha: new Date(),
           placas: r.placas, aprov: r.aprovechamiento, unidades: r.unidades, pedidoId: r.pedidoId,
-          rows: puertasRows.slice() };
+          rows: piezas.slice() };
         res.classList.add('show');
       }, function(){
         btn.disabled = false; btn.textContent = 'Finalizar pedido';
