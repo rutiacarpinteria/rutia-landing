@@ -120,6 +120,15 @@
       border-top:1px dashed var(--line); padding-top:18px;
     }
     .result.show{opacity:1}
+    /* Aviso "pedido recibido" */
+    .recibido{text-align:center}
+    .rcheck{width:58px; height:58px; line-height:54px; margin:0 auto 12px; border-radius:50%;
+      background:rgba(46,193,138,.14); color:var(--ok); font-size:30px; font-weight:800; border:2px solid var(--ok)}
+    .rttl{font-size:23px; font-weight:800; color:var(--txt); letter-spacing:.2px}
+    .rsub{font-size:13px; color:var(--muted); margin-top:5px; line-height:1.5}
+    .rplacas{font-size:20px; font-weight:800; color:var(--accent2); margin-top:16px}
+    .rmeta{font-size:13px; color:var(--muted); margin-top:2px}
+    .rref{font-size:11.5px; color:#5b6472; margin-top:6px; letter-spacing:.3px}
     .rbig{font-size:26px; font-weight:800}
     .rbig .u{font-size:15px; color:var(--muted); font-weight:600}
     .recibo{margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
@@ -245,18 +254,23 @@
         </div>
 
         <div class="result" id="result">
-          <div class="rbig"><span id="rPlacas">—</span> <span class="u" id="rPlacasU">placas</span></div>
-          <div class="ok" id="rMeta"></div>
-          <div class="recibo">
-            <button type="button" class="kbtn" onclick="descargarComprobante()">⬇ Descargar comprobante</button>
+          <div class="recibido">
+            <div class="rcheck">✓</div>
+            <div class="rttl">¡Pedido recibido!</div>
+            <div class="rsub" id="rSub">Ya nos llegó tu pedido.</div>
+            <div class="rplacas"><span id="rPlacas">—</span> <span id="rPlacasU">placas</span> estimadas</div>
+            <div class="rmeta" id="rMeta"></div>
+            <div class="rref" id="rRef"></div>
+            <div class="recibo">
+              <button type="button" class="kbtn" onclick="descargarComprobante()">⬇ Descargar comprobante</button>
+            </div>
+            <div class="ok" id="rMsg"></div>
           </div>
-          <div class="ok" id="rMsg"></div>
         </div>
 
         <img class="logo" src="/logo.svg" alt="Rutiá">
         <div class="err" id="err"></div>
-        <p class="note">El SVG para CNC y el PDF con el nesting le llegan a Rutiá por email.<br>
-          Estimación de placas orientativa, sujeta a optimización en taller.</p>
+        <p class="note">Estimación de placas orientativa, sujeta a optimización en taller.</p>
       </div>
     </div>
 
@@ -520,12 +534,12 @@
         if(!r || !r.ok){ err.textContent = 'No se pudo enviar el pedido' + (r && r.error ? ': ' + r.error : '.'); res.classList.remove('show'); return; }
         el('rPlacas').textContent = r.placas;
         el('rPlacasU').textContent = (r.placas === 1 ? 'placa' : 'placas');
-        el('rMeta').textContent = r.unidades + ' puertas · aprovechamiento ' + r.aprovechamiento + '%' +
-          (r.pedidoId ? ' · ' + r.pedidoId : '');
-        var msg = [];
-        if(r.sentRutia) msg.push('Enviado a Rutiá ✓');
-        if(r.sentCliente) msg.push('Copia a tu email ' + (r.emailCliente || '') + ' ✓');
-        el('rMsg').textContent = msg.join(' · ');
+        el('rMeta').textContent = r.unidades + ' puertas · aprovechamiento ' + r.aprovechamiento + '%';
+        el('rSub').textContent = r.sentCliente
+          ? 'Ya nos llegó tu pedido. Te enviamos una copia a tu correo.'
+          : 'Ya nos llegó tu pedido.';
+        el('rRef').textContent = r.pedidoId ? 'Ref. ' + r.pedidoId : '';
+        el('rMsg').textContent = '';
         if(r.avisos && r.avisos.length){ err.textContent = 'Avisos: ' + r.avisos.join(' '); }
         ultimoPedido = { usuario: PED_USER, obra: params.obra, tel: params.tel, fecha: new Date(),
           placas: r.placas, aprov: r.aprovechamiento, unidades: r.unidades, pedidoId: r.pedidoId,
