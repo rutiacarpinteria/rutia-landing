@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abrir carpeta</title>
+<link rel="icon" href="/favicon_rutia_r.png">
+<style>
+  body { font-family: system-ui, Arial, sans-serif; color: #222; background: #fff; max-width: 480px; margin: 15vh auto; padding: 0 16px; text-align: center; }
+  small { color: #777; }
+</style>
+</head>
+<body>
+<p id="m">Abriendo la carpeta del cliente…</p>
+<p><small>Si no se abre nada, falta instalar el link en esta compu:<br>
+<code>whatsapp-native-host\rutia-carpeta-link\install.ps1</code></small></p>
+<script>
+  // Puente para el add-on de Gmail: Gmail solo abre links https, así que viene acá y
+  // se pasa al protocolo local rutia-carpeta:// (handler en la compu). El nombre va en el
+  // # para que nunca se mande al servidor.
+  var nombre = '';
+  try { nombre = decodeURIComponent(location.hash.slice(1)); } catch (e) {}
+  if (nombre) {
+    document.getElementById('m').textContent = 'Abriendo la carpeta de ' + nombre + '… Podés cerrar esta pestaña.';
+    location.href = 'rutia-carpeta://abrir/?c=' + encodeURIComponent(nombre);
+    setTimeout(function () { window.close(); }, 4000);
+  } else {
+    document.getElementById('m').textContent = 'Falta el nombre del cliente.';
+  }
+</script>
+</body>
+</html>
