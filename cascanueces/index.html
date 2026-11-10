@@ -70,6 +70,7 @@ main > *{min-width:0}
 .vslider input::-moz-range-thumb{width:20px;height:20px;border:0;border-radius:50%;background:var(--card);box-shadow:0 0 0 1.5px var(--mid),0 1px 3px #0000001f}
 .vslider button{width:34px;height:34px;padding:0;border-radius:50%;font-size:12px;line-height:1;background:var(--mid);color:var(--card)}
 .vslider[hidden]{display:none}
+#btnPlay{background:var(--mid);color:var(--card);box-shadow:none}
 
 aside{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto;padding:1px}
 .block{background:var(--card);box-shadow:var(--lift);border-radius:8px;padding:12px}
@@ -298,7 +299,7 @@ CODES.forEach(c => {
 const gridOff = new THREE.Vector3(0, -D_GRID, 0);
 
 // ---------- estado
-let mode = 'explode', t = 0, step = 0, selected = null, colorMode = 'layers', marks = true;
+let mode = 'explode', t = 0, step = 0, selected = null, colorMode = 'paper', marks = true;
 const pOwn = {}, tOwn = {}, vis = {};
 CODES.forEach(c => { pOwn[c] = 0; tOwn[c] = 0; vis[c] = 1; });
 let pGrid = 0, tGrid = 0;
@@ -386,9 +387,10 @@ function applyLook(){
   CODES.forEach(c => {
     const it = meshes[c], u = it.mat.uniforms;
     TONES.forEach((n, i) => u['t'+i].value.copy(theme[n]));
-    it.edges.material.color.copy(c === selected ? theme.accent : theme.text);
-    it.edges2.material.color.copy(c === selected ? theme.accent : theme.mid);
-    if(c === selected){ u.tint.value.copy(theme.accent); u.tintAmt.value = .45; }
+    // boceto en blanco y negro; solo la pieza seleccionada toma su color de capa
+    it.edges.material.color.copy(c === selected ? theme.hi : theme.text);
+    it.edges2.material.color.copy(theme.mid);
+    if(c === selected){ u.tint.value.setHex(it.p.color); u.tintAmt.value = .6; }
     else if(colorMode === 'layers'){ u.tint.value.setHex(it.p.color); u.tintAmt.value = .4; }
     else u.tintAmt.value = 0;
   });
