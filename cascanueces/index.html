@@ -123,11 +123,6 @@ dt{color:var(--muted)} dd{margin:0;font-family:var(--mono);font-variant-numeric:
       <ol class="parts" id="parts"></ol>
     </div>
 
-    <div class="block legend">
-      <p class="label">Las piezas no son simétricas</p>
-      <div class="mk"><span class="mkA" aria-hidden="true">A↑</span>
-      <p>Cada pieza lleva una <b>cara A</b> con flecha. Cara A = la que queda <b>hacia arriba en la placa al cortar</b>: marcala con lápiz antes de sacar la pieza de la CNC. En el armado, la flecha apunta <b>arriba</b> en espalda y costillas, y <b>al frente</b> en aros y tapas.</p></div>
-    </div>
 
     <div class="block" id="infoBox">
       <p class="label">Pieza seleccionada</p>
@@ -157,9 +152,9 @@ const STEPS = [
   {code:'C3', title:'Costilla 45° derecha', show:['C3'], move:['C3'],
    text:'Igual, en diagonal. Ojo: su cara A mira hacia el centro (izquierda-adelante), flecha arriba.'},
   {code:'T1', title:'Tapa superior', show:['T1'], move:['T1'],
-   text:'Entra desde atrás y se desliza hacia adelante sobre las puntas de las costillas. Cara A hacia abajo, flecha al frente.'},
+   text:'Baja en vertical desde arriba y encastra en las puntas de las costillas (por las diagonales solo entra así). Cara A hacia abajo, flecha al frente.'},
   {code:'T2', title:'Tapa inferior', show:['T2'], move:['T2'],
-   text:'Igual que la superior, abajo. Cara A hacia abajo, flecha al frente.'},
+   text:'Sube en vertical desde abajo y encastra en las puntas de las costillas. Cara A hacia abajo, flecha al frente.'},
   {code:'E', title:'Todo a la espalda', show:['E'], move:['G'],
    text:'La rejilla armada va hacia atrás y las espigas de las costillas entran en las cajas de la espalda. Cara A de la espalda al frente, flecha arriba.'}
 ];
@@ -229,14 +224,14 @@ world.position.set(-C.x, -C.z, C.y);
 const size = all.getSize(new THREE.Vector3());
 
 // ---------- desplazamientos por etapa (coordenadas Rhino; frente = -Y)
-// etapa 1: costillas salen hacia el frente por su propio plano; etapa 2: tapas salen hacia atrás;
+// etapa 1: costillas salen hacia el frente por su propio plano; etapa 2: tapas salen en vertical (T1 arriba, T2 abajo);
 // etapa 3: la rejilla entera se separa de la espalda hacia el frente
 const D_RIB = 230, D_LID = 200, D_GRID = 330;
 const own = {};
 CODES.forEach(c => {
   const it = meshes[c];
   if(c[0] === 'C') own[c] = it.u.clone().multiplyScalar(-D_RIB);
-  else if(c[0] === 'T') own[c] = new THREE.Vector3(0, D_LID, 0);
+  else if(c[0] === 'T') own[c] = new THREE.Vector3(0, 0, c === 'T1' ? D_LID : -D_LID);
   else own[c] = new THREE.Vector3();
 });
 const gridOff = new THREE.Vector3(0, -D_GRID, 0);
