@@ -1,78 +1,101 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon_rutia.ico">
-<style>body{margin:0}</style>
 <title>Farola grande Cascanueces</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap">
 <style>
+/* estilo "anatomy": papel, líneas finas, cuatro tonos, un solo acento */
 :root{
-  --ground:#E8EAE6; --panel:#F6F7F4; --ink:#1E2629; --muted:#5E6A6C; --line:#C9CEC8;
-  --accent:#A8322D; --accent-ink:#FFFFFF; --canvas:#DFE2DD;
-  --sans:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --page:#f2f2ef; --card:#fbfbfa; --text:#57575a; --strong:#18181a; --muted:#8c8c90;
+  --face:#ffffff; --shade-0:#dcdcd9; --shade-1:#e5e5e2; --shade-2:#ededea; --shade-3:#f4f4f1;
+  --hi:#26262a; --mid:#8a8a8f; --lo:#b4b4b8; --faint:#d4d4d6;
+  --accent:#e5484d; --accent-ink:#ffffff;
+  --lift:inset 0 1px 0 0 #ffffff,0 0 0 1px #0000000f,0 1px 1px -.5px #0000000a,0 3px 3px -1.5px #0000000a,0 6px 6px -3px #0000000a,0 12px 12px -6px #0000000a;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.32,.72,0,1);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --ground:#151A1C; --panel:#1D2427; --ink:#E6EAE7; --muted:#97A3A4; --line:#334044;
-    --accent:#E0675E; --accent-ink:#1A0F0E; --canvas:#1A2023; color-scheme:dark;
+    --page:#0b0b0b; --card:#131313; --text:#a3a3a3; --strong:#e6e6e6; --muted:#6e6e6e;
+    --face:#262626; --shade-0:#141414; --shade-1:#181818; --shade-2:#1c1c1c; --shade-3:#212121;
+    --hi:#d4d4d4; --mid:#6a6a6a; --lo:#3e3e3e; --faint:#2a2a2a;
+    --accent:#ff6b6b; --accent-ink:#1a0f0e;
+    --lift:inset 0 1px 0 0 #ffffff0a,inset 0 0 0 1px #ffffff06,0 0 0 1px #00000026,0 3px 3px -1.5px #00000014,0 12px 12px -6px #00000014;
+    color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --ground:#151A1C; --panel:#1D2427; --ink:#E6EAE7; --muted:#97A3A4; --line:#334044;
-  --accent:#E0675E; --accent-ink:#1A0F0E; --canvas:#1A2023; color-scheme:dark;
+  --page:#0b0b0b; --card:#131313; --text:#a3a3a3; --strong:#e6e6e6; --muted:#6e6e6e;
+  --face:#262626; --shade-0:#141414; --shade-1:#181818; --shade-2:#1c1c1c; --shade-3:#212121;
+  --hi:#d4d4d4; --mid:#6a6a6a; --lo:#3e3e3e; --faint:#2a2a2a;
+  --accent:#ff6b6b; --accent-ink:#1a0f0e;
+  --lift:inset 0 1px 0 0 #ffffff0a,inset 0 0 0 1px #ffffff06,0 0 0 1px #00000026,0 3px 3px -1.5px #00000014,0 12px 12px -6px #00000014;
+  color-scheme:dark;
 }
-html,body{height:100%}
-body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;
+html,body{height:100%;margin:0}
+body{background:var(--page);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;
   display:flex;flex-direction:column;padding-inline:16px;box-sizing:border-box}
-header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;padding-block:12px 10px}
-h1{font-size:21px;font-weight:600;margin:0;letter-spacing:.01em;text-wrap:balance}
-.sub{font-family:var(--mono);font-size:12px;color:var(--muted)}
-main{flex:1;min-height:0;display:grid;grid-template-columns:1fr 300px;gap:12px;padding-bottom:16px}
-#stage{position:relative;min-height:320px;background:var(--canvas);border-radius:6px;overflow:hidden;touch-action:none}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 16px;padding-block:14px 10px}
+h1{font-size:19px;font-weight:600;margin:0;color:var(--strong);letter-spacing:-.01em;text-wrap:balance}
+.sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.02em}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;padding-bottom:16px}
+main > *{min-width:0}
+
+/* lámina */
+#stage{position:relative;min-height:320px;background:var(--card);box-shadow:0 0 0 1px var(--mid);overflow:hidden;touch-action:none}
 #stage canvas{display:block;width:100%;height:100%}
-.hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted);pointer-events:none}
-.toolbar{position:absolute;right:8px;top:8px;display:flex;gap:6px}
-aside{display:flex;flex-direction:column;gap:14px;min-height:0;overflow:auto}
-.block{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px}
-.label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
-.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:5px;overflow:hidden}
-.seg button{border:0;border-radius:0;background:transparent}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
-button{font:500 14px var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:7px 10px;cursor:pointer}
-button:hover{border-color:var(--muted)}
+.corner{position:absolute;font-family:var(--mono);font-size:10.5px;line-height:1;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;pointer-events:none}
+.c-fig{top:14px;left:14px;color:var(--text);letter-spacing:.04em;text-transform:none}
+.c-hint{bottom:14px;left:14px;white-space:normal;max-width:calc(100% - 90px);line-height:1.4;letter-spacing:.06em}
+.c-read{bottom:14px;right:56px;color:var(--text);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.toolbar{position:absolute;right:12px;top:10px;display:flex;gap:4px}
+.toolbar button{font:500 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:5px 7px;background:var(--card)}
+
+/* slider vertical dentro de la lámina */
+.vslider{position:absolute;right:10px;top:46px;bottom:40px;width:36px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.vslider .end{font:10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg)}
+.vslider input{flex:1;min-height:80px;width:28px;margin:0;writing-mode:vertical-lr;direction:rtl;-webkit-appearance:slider-vertical;appearance:slider-vertical;accent-color:var(--hi);touch-action:none}
+.vslider button{width:34px;height:34px;padding:0;border-radius:50%;font-size:12px;line-height:1}
+.vslider[hidden]{display:none}
+
+aside{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto;padding:1px}
+.block{background:var(--card);box-shadow:var(--lift);border-radius:8px;padding:12px}
+.label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 8px}
+.seg{display:grid;grid-template-columns:1fr 1fr;box-shadow:0 0 0 1px var(--faint);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent;box-shadow:none}
+.seg button[aria-pressed="true"]{background:var(--strong);color:var(--card)}
+button{font:500 13px var(--sans);color:var(--strong);background:var(--card);border:0;box-shadow:0 0 0 1px var(--lo);border-radius:6px;padding:7px 10px;cursor:pointer;
+  transition:box-shadow .2s var(--ease),background-color .2s var(--ease)}
+button:hover{box-shadow:0 0 0 1px var(--mid)}
+button:disabled{opacity:.4;cursor:default}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.primary{background:var(--strong);color:var(--card);box-shadow:none}
 .row{display:flex;gap:8px;align-items:center}
 .row > *{flex:1}
-input[type=range]{width:100%;accent-color:var(--accent)}
-.ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:2px}
-#stepTitle{font-size:17px;font-weight:600;margin:0 0 2px}
-#stepText{margin:0 0 10px;color:var(--muted);line-height:1.4}
-.count{font-family:var(--mono);font-size:12px;color:var(--muted)}
-ol.parts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
-ol.parts li button{width:100%;display:grid;grid-template-columns:14px 34px 1fr;gap:8px;align-items:center;text-align:left;border-color:transparent;background:transparent;padding:5px 6px}
-ol.parts li button[aria-current="true"]{border-color:var(--accent)}
-ol.parts li button.off{opacity:.45}
-.sw{width:12px;height:12px;border-radius:2px;border:1px solid rgba(0,0,0,.25)}
-.legend p{margin:0;line-height:1.4;font-size:13.5px}
-.mk{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
-.mkA{font:600 14px var(--mono);color:#fff;background:#A8322D;border-radius:4px;padding:3px 6px}
-#btnMarks[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-.code{font-family:var(--mono);font-size:12px;color:var(--muted)}
+#stepTitle{font-size:15px;font-weight:600;color:var(--strong);margin:0 0 2px}
+#stepText{margin:0 0 10px;line-height:1.45}
+.count{font-family:var(--mono);font-size:11px;color:var(--muted)}
+ol.parts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+ol.parts li button{width:100%;display:grid;grid-template-columns:12px 30px 1fr;gap:8px;align-items:center;text-align:left;box-shadow:none;background:transparent;padding:5px 6px;font-weight:400;color:var(--text)}
+ol.parts li button:hover{background:var(--shade-3)}
+ol.parts li button[aria-current="true"]{box-shadow:0 0 0 1px var(--accent);color:var(--strong)}
+ol.parts li button.off{opacity:.4}
+.sw{width:10px;height:10px;border-radius:2px;box-shadow:0 0 0 1px var(--mid)}
+.toolbar button[aria-pressed="true"]{box-shadow:0 0 0 1px var(--accent);color:var(--accent)}
+.code{font-family:var(--mono);font-size:11px;color:var(--muted)}
 dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0;font-size:13px}
-dt{color:var(--muted)} dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums}
+dt{color:var(--muted)} dd{margin:0;font-family:var(--mono);font-size:12px;color:var(--strong);font-variant-numeric:tabular-nums}
 @media (min-width:761px){ body{overflow:hidden} }
 @media (max-width:760px){
-  main{grid-template-columns:1fr;grid-template-rows:minmax(300px,58vh) auto}
+  main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(320px,62vh) auto}
   aside{overflow:visible}
   body{height:auto}
+  .c-read{display:none}
 }
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -83,12 +106,20 @@ dt{color:var(--muted)} dd{margin:0;font-family:var(--mono);font-variant-numeric:
 </header>
 <main>
   <div id="stage">
+    <span class="corner c-fig">FIG. 1 — despiece</span>
     <div class="toolbar">
       <button id="btnMarks" type="button" aria-pressed="true" title="Mostrar u ocultar la marca de cara A">Cara A</button>
-      <button id="btnColor" type="button" aria-pressed="false" title="Ver como MDF o por colores de capa">MDF</button>
+      <button id="btnColor" type="button" aria-pressed="false" title="Ver en blanco o por colores de capa">Colores</button>
       <button id="btnView" type="button" title="Volver a la vista inicial">Centrar</button>
     </div>
-    <span class="hint">Arrastrá para girar · pellizcá o rueda para acercar · tocá una pieza</span>
+    <div class="vslider" id="explodeBox">
+      <span class="end">Despiece</span>
+      <input id="slider" type="range" min="0" max="1000" value="0" orient="vertical" aria-label="Separación de las piezas (arriba: despiece, abajo: armada)">
+      <span class="end">Armada</span>
+      <button id="btnPlay" type="button" class="primary" aria-label="Animar">▶</button>
+    </div>
+    <span class="corner c-hint">Arrastrá para girar · pellizcá para acercar · tocá una pieza</span>
+    <span class="corner c-read" id="readout"></span>
   </div>
   <aside>
     <div class="block">
@@ -96,15 +127,6 @@ dt{color:var(--muted)} dd{margin:0;font-family:var(--mono);font-variant-numeric:
       <div class="seg" role="group" aria-label="Modo">
         <button id="mExplode" type="button" aria-pressed="true">Despiece</button>
         <button id="mSteps" type="button" aria-pressed="false">Armado paso a paso</button>
-      </div>
-    </div>
-
-    <div class="block" id="explodeBox">
-      <p class="label">Separar piezas</p>
-      <input id="slider" type="range" min="0" max="1000" value="0" aria-label="Separación de las piezas">
-      <div class="ends"><span>Armada</span><span>Despiece</span></div>
-      <div class="row" style="margin-top:10px">
-        <button id="btnPlay" type="button" class="primary">▶ Animar</button>
       </div>
     </div>
 
@@ -122,7 +144,6 @@ dt{color:var(--muted)} dd{margin:0;font-family:var(--mono);font-variant-numeric:
       <p class="label">Piezas (orden de armado)</p>
       <ol class="parts" id="parts"></ol>
     </div>
-
 
     <div class="block" id="infoBox">
       <p class="label">Pieza seleccionada</p>
@@ -158,7 +179,15 @@ const STEPS = [
   {code:'E', title:'Todo a la espalda', show:['E'], move:['G'],
    text:'La rejilla armada va hacia atrás y las espigas de las costillas entran en las cajas de la espalda. Cara A de la espalda al frente, flecha arriba.'}
 ];
-const MDF = 0xC7A57A;
+// ---------- tonos del tema (se leen de las variables CSS)
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const TONES = ['--face','--shade-3','--shade-2','--shade-1','--shade-0'];
+const theme = {};
+function readTheme(){
+  TONES.forEach(n => theme[n] = new THREE.Color(css(n)));
+  theme.hi = new THREE.Color(css('--hi')); theme.accent = new THREE.Color(css('--accent'));
+}
+readTheme();
 
 // ---------- escena
 const stage = document.getElementById('stage');
@@ -166,12 +195,27 @@ const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
 stage.prepend(renderer.domElement);
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(35, 1, 1, 20000);
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 40000);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = 0.1;
-scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f88, 0.75));
-const sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(-600, 1200, 900); scene.add(sun);
-const fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(800, -400, -600); scene.add(fill);
+controls.minZoom = 0.4; controls.maxZoom = 8;
+
+// sombreado de lámina: luz fija a la cámara, cuatro tonos planos (como /anatomy)
+const VS = 'varying vec3 vN; void main(){ vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }';
+const FS = [
+  'uniform vec3 t0; uniform vec3 t1; uniform vec3 t2; uniform vec3 t3; uniform vec3 t4;',
+  'uniform vec3 tint; uniform float tintAmt; uniform float opacity; varying vec3 vN;',
+  'void main(){',
+  '  vec3 n = normalize(vN); float d = dot(n, normalize(vec3(-0.45, 0.8, 0.55)));',
+  '  vec3 c = d > 0.72 ? t0 : d > 0.35 ? t1 : d > 0.0 ? t2 : d > -0.4 ? t3 : t4;',
+  '  gl_FragColor = vec4(mix(c, tint * (0.82 + 0.18 * c), tintAmt), opacity);',
+  '}'].join('\n');
+function inkMaterial(){
+  return new THREE.ShaderMaterial({
+    uniforms:{t0:{value:new THREE.Color()}, t1:{value:new THREE.Color()}, t2:{value:new THREE.Color()}, t3:{value:new THREE.Color()}, t4:{value:new THREE.Color()},
+      tint:{value:new THREE.Color()}, tintAmt:{value:0}, opacity:{value:1}},
+    vertexShader:VS, fragmentShader:FS, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1});
+}
 
 // Rhino es Z arriba; three es Y arriba
 const world = new THREE.Group(); world.rotation.x = -Math.PI/2; scene.add(world);
@@ -180,12 +224,12 @@ const world = new THREE.Group(); world.rotation.x = -Math.PI/2; scene.add(world)
 function markTexture(code){
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d');
-  g.fillStyle = '#A8322D'; g.beginPath(); g.arc(128,128,120,0,Math.PI*2); g.fill();
+  g.fillStyle = '#' + theme.accent.getHexString(); g.beginPath(); g.arc(128,128,120,0,Math.PI*2); g.fill();
   g.fillStyle = '#FFFFFF';
   g.beginPath(); g.moveTo(128,18); g.lineTo(178,78); g.lineTo(146,78); g.lineTo(146,110); g.lineTo(110,110); g.lineTo(110,78); g.lineTo(78,78); g.closePath(); g.fill();
-  g.font = '700 104px "IBM Plex Sans Condensed", Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '700 104px system-ui, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText('A', 128, 168);
-  g.font = '600 34px "IBM Plex Mono", monospace'; g.fillText(code, 128, 222);
+  g.font = '600 34px Consolas, Menlo, monospace'; g.fillText(code, 128, 222);
   const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
 }
 
@@ -202,9 +246,9 @@ PIECES.forEach(p => {
   geo.applyMatrix4(m);
   geo.computeBoundingBox();
   p.color = (p.color[0]<<16)|(p.color[1]<<8)|p.color[2];
-  const mat = new THREE.MeshStandardMaterial({color:p.color, roughness:.85, metalness:0, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1});
+  const mat = inkMaterial();
   const mesh = new THREE.Mesh(geo, mat);
-  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), new THREE.LineBasicMaterial({color:0x1E2629, transparent:true, opacity:.55}));
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), new THREE.LineBasicMaterial({color:theme.hi.clone(), transparent:true, opacity:.9}));
   mesh.add(edges);
   // marca cara A
   const mk = p.mark, s = mk.size;
@@ -237,7 +281,7 @@ CODES.forEach(c => {
 const gridOff = new THREE.Vector3(0, -D_GRID, 0);
 
 // ---------- estado
-let mode = 'explode', t = 0, step = 0, selected = null, colorMode = 'layers', marks = true;
+let mode = 'explode', t = 0, step = 0, selected = null, colorMode = 'paper', marks = true;
 const pOwn = {}, tOwn = {}, vis = {};
 CODES.forEach(c => { pOwn[c] = 0; tOwn[c] = 0; vis[c] = 1; });
 let pGrid = 0, tGrid = 0;
@@ -289,7 +333,7 @@ function renderList(){
     const p = byCode[c]; if(!p) return;
     const li = document.createElement('li'), b = document.createElement('button');
     b.type = 'button';
-    const col = colorMode==='mdf' ? MDF : p.color;
+    const col = p.color;
     b.innerHTML = '<span class="sw" style="background:#' + col.toString(16).padStart(6,'0') + '"></span><span class="code">' + c + '</span><span>' + cap(p.name) + '</span>';
     if(selected === c) b.setAttribute('aria-current', 'true');
     if(mode==='steps' && stepOf(c) > step) b.classList.add('off');
@@ -306,7 +350,7 @@ function dims(p){
 }
 function select(code){
   selected = code;
-  CODES.forEach(c => meshes[c].mat.emissive.setHex(c===code ? 0x5a1410 : 0x000000));
+  applyLook();
   const info = document.getElementById('info');
   if(!code){ info.innerHTML = '<dt>—</dt><dd>Tocá una pieza</dd>'; renderList(); return; }
   const p = meshes[code].p, d = dims(p);
@@ -320,16 +364,46 @@ function select(code){
   renderList();
 }
 
+// ---------- aspecto (tonos del tema, colores de capa, acento en la selección)
+function applyLook(){
+  CODES.forEach(c => {
+    const it = meshes[c], u = it.mat.uniforms;
+    TONES.forEach((n, i) => u['t'+i].value.copy(theme[n]));
+    it.edges.material.color.copy(theme.hi);
+    if(c === selected){ u.tint.value.copy(theme.accent); u.tintAmt.value = .38; }
+    else if(colorMode === 'layers'){ u.tint.value.setHex(it.p.color); u.tintAmt.value = .55; }
+    else u.tintAmt.value = 0;
+  });
+}
+const readout = document.getElementById('readout');
+function setPlay(on){
+  playing = on;
+  btnPlay.textContent = on ? '❚❚' : '▶';
+  btnPlay.setAttribute('aria-label', on ? 'Pausa' : 'Animar');
+}
+const mq = window.matchMedia('(prefers-color-scheme: dark)');
+(mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(() => {
+  readTheme(); applyLook();
+  CODES.forEach(c => { const pl = meshes[c].plane; pl.material.map = markTexture(c); pl.material.needsUpdate = true; });
+});
+
 // ---------- vista
 function resetView(){
   const r = Math.max(size.x, size.y, size.z);
-  camera.position.set(-r*1.6, r*0.4, r*1.6);
-  controls.target.set(0, 0, 160);
+  // isométrica: azimut 45°, elevación 30°, desde adelante-izquierda
+  const tg = new THREE.Vector3(0, 0, 160), az = Math.PI/4, el = Math.PI/6;
+  controls.target.copy(tg);
+  camera.position.copy(tg).add(new THREE.Vector3(-Math.sin(az)*Math.cos(el), Math.sin(el), Math.cos(az)*Math.cos(el)).multiplyScalar(r*4));
+  camera.zoom = 1; camera.updateProjectionMatrix();
   controls.update();
 }
 function resize(){
   const w = stage.clientWidth, h = stage.clientHeight;
-  renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false);
+  const half = Math.max(size.x, size.y, size.z) * 0.62, asp = w/h;
+  const hh = asp >= 1 ? half : half/asp;   // en vertical (celular) entra todo a lo ancho
+  camera.left = -hh*asp; camera.right = hh*asp; camera.top = hh; camera.bottom = -hh;
+  camera.updateProjectionMatrix();
 }
 new ResizeObserver(resize).observe(stage);
 
@@ -350,8 +424,8 @@ renderer.domElement.addEventListener('pointerup', e => {
 const slider = document.getElementById('slider');
 const btnPlay = document.getElementById('btnPlay');
 let playing = false, dir = 1;
-slider.addEventListener('input', () => { t = slider.value/1000; playing = false; btnPlay.textContent = '▶ Animar'; explodeTargets(); });
-btnPlay.addEventListener('click', () => { playing = !playing; if(playing && (t>=1||t<=0)) dir = t>=1 ? -1 : 1; btnPlay.textContent = playing ? '❚❚ Pausa' : '▶ Animar'; });
+slider.addEventListener('input', () => { t = slider.value/1000; playing = false; setPlay(false); explodeTargets(); });
+btnPlay.addEventListener('click', () => { playing = !playing; if(playing && (t>=1||t<=0)) dir = t>=1 ? -1 : 1; setPlay(playing); });
 document.getElementById('mExplode').addEventListener('click', () => setMode('explode'));
 document.getElementById('mSteps').addEventListener('click', () => setMode('steps'));
 document.getElementById('btnPrev').addEventListener('click', () => { if(step>0){ step--; pGrid = 1; CODES.forEach(c => pOwn[c] = 0); updateStep(); } });
@@ -359,10 +433,9 @@ document.getElementById('btnNext').addEventListener('click', () => { step = step
 document.getElementById('btnView').addEventListener('click', resetView);
 const btnColor = document.getElementById('btnColor');
 btnColor.addEventListener('click', () => {
-  colorMode = colorMode==='mdf' ? 'layers' : 'mdf';
-  btnColor.setAttribute('aria-pressed', colorMode==='mdf');
-  btnColor.textContent = colorMode==='mdf' ? 'Colores' : 'MDF';
-  CODES.forEach(c => meshes[c].mat.color.setHex(colorMode==='mdf' ? MDF : meshes[c].p.color));
+  colorMode = colorMode==='paper' ? 'layers' : 'paper';
+  btnColor.setAttribute('aria-pressed', colorMode==='layers');
+  applyLook();
   renderList();
 });
 const btnMarks = document.getElementById('btnMarks');
@@ -375,7 +448,7 @@ function frame(now){
   const dt = Math.min(.05, (now-last)/1000); last = now;
   if(playing && mode==='explode'){
     t += dir * dt / 4;
-    if(t >= 1 || t <= 0){ t = clamp01(t); playing = false; btnPlay.textContent = '▶ Animar'; }
+    if(t >= 1 || t <= 0){ t = clamp01(t); setPlay(false); }
     slider.value = Math.round(t*1000); explodeTargets();
   }
   const k = reduce ? 1 : 1 - Math.pow(0.02, dt);
@@ -387,18 +460,17 @@ function frame(now){
     if(c !== 'E') tmp.addScaledVector(gridOff, pGrid);
     it.mesh.position.copy(tmp);
     const o = vis[c];
-    it.mat.transparent = o < 1; it.mat.opacity = o; it.mat.depthWrite = o >= 1;
-    it.edges.material.opacity = .55 * o;
+    it.mat.transparent = o < 1; it.mat.uniforms.opacity.value = o; it.mat.depthWrite = o >= 1;
+    it.edges.material.opacity = .9 * o;
     it.plane.visible = marks && o >= 1;
   });
+  readout.textContent = mode==='explode' ? 'separación ' + String(Math.round(t*100)).padStart(3,' ') + ' %' : 'paso ' + (step+1) + ' / ' + STEPS.length;
   controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
-resize(); resetView();
+resize(); resetView(); applyLook();
 t = 0.5; slider.value = 500; explodeTargets(); renderList();
 requestAnimationFrame(frame);
 })();
 </script>
-</body>
-</html>
